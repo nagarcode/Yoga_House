@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Practice/practice_template.dart';
 import 'package:yoga_house/Services/shared_prefs.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
@@ -15,6 +16,10 @@ class FirestoreDatabase {
   final _instance = FirebaseFirestore.instance;
 
   FirestoreDatabase({required this.uid});
+
+  setDocument(String path, Map<String, dynamic> data) async {
+    return await _instance.doc(path).set(data);
+  }
 
   Stream<T> _streamFromDoc<T>(
       String docPath, T Function(Map<String, dynamic> data) builder) {
@@ -88,9 +93,27 @@ class FirestoreDatabase {
   }
 
   Future<bool> persistPracticeTemplateLocally(
-      //TODO check which one is empty and replace it.
-      PracticeTemplate template,
-      SharedPrefs sharedPrefs) async {
-    return await sharedPrefs.practiceTemplate1.setValue(template);
+      PracticeTemplate template, SharedPrefs sharedPrefs) async {
+    final emptyTemplateIndex = sharedPrefs.emptyTemplateIndex();
+    if (emptyTemplateIndex == 0) {
+      throw Exception('No empty templates available!');
+    }
+    switch (emptyTemplateIndex) {
+      case 1:
+        return await sharedPrefs.practiceTemplate1.setValue(template);
+      case 2:
+        return await sharedPrefs.practiceTemplate2.setValue(template);
+      case 3:
+        return await sharedPrefs.practiceTemplate3.setValue(template);
+      case 4:
+        return await sharedPrefs.practiceTemplate4.setValue(template);
+      default:
+        return false;
+    }
+  }
+
+  addPractice(Practice practice) async {
+    final path = APIPath.practice(practice.id);
+    await setDocument(path, practice.toMap());
   }
 }

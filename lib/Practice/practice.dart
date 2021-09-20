@@ -28,4 +28,35 @@ class Practice {
     this.registeredParticipants,
     this.numOfUsersInWaitingList,
   );
+  factory Practice.fromMap(Map<String, dynamic> data) {
+    return Practice(
+        data['id'],
+        data['name'],
+        data['level'],
+        data['managerName'],
+        data['managerUID'],
+        data['description'],
+        data['location'],
+        data['startTime'].toDate(),
+        data['endTime'].toDate(),
+        data['maxParticipants'],
+        [], //TODO get registered participants - proxy?
+        data['numOfUsersInWaitingList']);
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'level': level,
+      'managerName': managerName,
+      'managerUID': managerUID,
+      'description': description,
+      'location': location,
+      'startTime': startTime,
+      'endTime': endTime,
+      'maxParticipants': maxParticipants,
+      'numOfUsersInWaitingList': numOfUsersInWaitingList,
+    };
+  }
 }

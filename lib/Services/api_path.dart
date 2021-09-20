@@ -8,6 +8,8 @@ class APIPath {
 
   static String appInfo() => 'App_Info_Collection/app_info';
 
+  static String practice(String id) => 'Practices/$id';
+
   //FCM topics
   static String homepageTextTopic() => '_homepage_text';
 

@@ -30,45 +30,54 @@ class _ManagementScreenState extends State<ManagementScreen> {
         onPressed: () => Utils.signOut(context),
         child: Text(
           'התנתק',
-          style: theme.textTheme.subtitle1,
+          style: theme.textTheme.subtitle1?.copyWith(color: Colors.white),
         ));
   }
 
   SettingsSection _managementSection() {
     final iconColor = Theme.of(context).colorScheme.primary;
+    final theme = Theme.of(context);
     return SettingsSection(
       title: 'ניהול',
+      titleTextStyle: theme.textTheme.bodyText1,
       tiles: [
         SettingsTile(
-          title: 'אימונים קבועים',
+          title: 'תבניות אימון',
           leading: Icon(Icons.run_circle_outlined, color: iconColor),
+          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onPressed: (context) async {
             await PracticeTemplatesScreen.pushToTabBar(context);
           },
         ),
         SettingsTile(
           title: 'שלח הודעה ללקוחות',
+          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           leading: Icon(Icons.edit_notifications_outlined, color: iconColor),
         ),
         SettingsTile(
           title: 'הודעה בדף הבית',
+          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           leading: Icon(Icons.message_outlined, color: iconColor),
         ),
         SettingsTile(
           title: 'היסטוריית אימונים',
+          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           leading: Icon(Icons.history_toggle_off_rounded, color: iconColor),
         ),
         SettingsTile(
           title: 'סטטיסטיקה חודשית',
+          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           leading: Icon(Icons.data_saver_off_outlined, color: iconColor),
         ),
         SettingsTile(
           title: 'התראות',
+          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           leading:
               Icon(Icons.notification_important_outlined, color: iconColor),
         ),
         SettingsTile(
           title: 'מבט לדף לקוחות',
+          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           leading: Icon(Icons.person_outline_outlined, color: iconColor),
         ),
       ],

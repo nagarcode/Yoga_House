@@ -16,7 +16,7 @@ class _ManagerHomeState extends State<ManagerHome> {
   PersistentTabController? _controller;
   @override
   void initState() {
-    _controller = PersistentTabController(initialIndex: 2);
+    _controller = PersistentTabController(initialIndex: 1);
     super.initState();
   }
 

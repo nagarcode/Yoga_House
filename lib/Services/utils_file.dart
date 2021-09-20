@@ -61,9 +61,10 @@ class Utils {
       void Function() onConfirmed,
       BuildContext innerCtx,
       TextStyle style,
-      formKey) {
+      formKey,
+      String title) {
     return CupertinoActionSheet(
-      title: Text('אימון קבוע חדש'),
+      title: Text(title),
       actions: [
         Utils.bottomModalSheetCard(
           FormBuilder(

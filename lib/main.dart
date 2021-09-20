@@ -77,8 +77,8 @@ class MyApp extends StatelessWidget {
     return TextTheme(
         button:
             defaultTheme.button?.copyWith(color: colorScheme.secondaryVariant),
-        bodyText1:
-            defaultTheme.bodyText1?.copyWith(color: colorScheme.primaryVariant),
+        bodyText1: defaultTheme.bodyText1
+            ?.copyWith(color: colorScheme.secondaryVariant),
         bodyText2: defaultTheme.bodyText2?.copyWith(color: colorScheme.primary),
         subtitle1: defaultTheme.subtitle1
             ?.copyWith(color: colorScheme.secondaryVariant),
