@@ -10,22 +10,15 @@ import 'package:intl/intl.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
 
 class RegisterToPracticeScreen extends StatefulWidget {
-  final List<Practice> futurePractices;
-  final FirestoreDatabase database;
-  const RegisterToPracticeScreen(
-      {Key? key, required this.futurePractices, required this.database})
-      : super(key: key);
+  const RegisterToPracticeScreen({
+    Key? key,
+  }) : super(key: key);
 
   static Future<void> pushToTabBar(BuildContext context) async {
-    final futurePractices = context.read<List<Practice>>();
-    final database = context.read<FirestoreDatabase>();
-    // final sharedPrefs = context.read<SharedPrefs>();
     await pushNewScreen(
       context,
-      screen: RegisterToPracticeScreen(
-        futurePractices: futurePractices,
-        database: database,
-      ),
+      // ignore: prefer_const_constructors
+      screen: RegisterToPracticeScreen(),
     );
   }
 
@@ -46,27 +39,13 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
     );
   }
 
-  // List<PracticeCard> _practiceCards() {
-  //   final userInfo = context.read<UserInfo>();
-  //   final cards = <PracticeCard>[];
-  //   for (var practice in widget.futurePractices) {
-  //     cards.add(PracticeCard(
-  //       data: practice,
-  //       registerCallback: practice.registerToPracticeCallback(
-  //           userInfo, widget.database, context),
-  //       waitingListCallback: () {}, //TODO change
-  //     ));
-  //   }
-  //   return cards;
-  // }
-
   Widget _practiceCardsListView() {
-    if (widget.futurePractices.isEmpty) return _noPracticesWidget;
+    final futurePractices = context.watch<List<Practice>>();
+    if (futurePractices.isEmpty) return _noPracticesWidget;
     return GroupedListView<Practice, String>(
-      // padding: const EdgeInsets.only(top: 4),
       shrinkWrap: true,
       useStickyGroupSeparators: true,
-      elements: widget.futurePractices,
+      elements: futurePractices,
       groupBy: _groupBy,
       groupSeparatorBuilder: _groupSeparatorBuilder,
       itemBuilder: _itemBuilder,
@@ -77,14 +56,15 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
 
   Widget _itemBuilder(BuildContext listContext, Practice practice) {
     final userInfo = context.read<UserInfo>();
+    final database = context.read<FirestoreDatabase>();
     return PracticeCard(
       data: practice,
-      registerCallback: practice.registerToPracticeCallback(
-          userInfo, widget.database, context),
+      registerCallback:
+          practice.registerToPracticeCallback(userInfo, database, context),
       waitingListCallback: () {}, //TODO change
       isRegistered: practice.isUserRegistered(userInfo.uid),
-      unregisterCallback: practice.unregisterFromPracticeCallback(
-          userInfo, widget.database, context),
+      unregisterCallback:
+          practice.unregisterFromPracticeCallback(userInfo, database, context),
     );
   }
 

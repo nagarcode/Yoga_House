@@ -101,7 +101,8 @@ class LandingPage extends StatelessWidget {
             value: appInfo,
             child: appInfo.isManagerTerminated
                 ? const InfoScreen(PageType.managerTerminated)
-                : const ManagerHome());
+                // ignore: prefer_const_constructors
+                : ManagerHome());
       },
     );
   }

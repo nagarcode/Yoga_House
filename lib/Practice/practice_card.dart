@@ -98,7 +98,7 @@ class PracticeCard extends StatelessWidget {
       },
       child: Text(
         isRegistered
-            ? 'רשום. לחץ לביטול רישום'
+            ? 'רשום. קליק לביטול רישום'
             : isFull
                 ? 'לרשימת המתנה'
                 : 'הירשם',

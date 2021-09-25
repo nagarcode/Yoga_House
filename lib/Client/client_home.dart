@@ -8,6 +8,7 @@ import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Services/app_info.dart';
 import 'package:yoga_house/Services/auth.dart';
 import 'package:yoga_house/Services/database.dart';
+import 'package:yoga_house/User_Info/user_info.dart';
 import 'package:yoga_house/common_widgets/custom_button.dart';
 
 import 'client_main_screen.dart';
@@ -23,7 +24,7 @@ class _ClientHomeState extends State<ClientHome> {
   PersistentTabController? _controller;
   @override
   void initState() {
-    _controller = PersistentTabController(initialIndex: 2);
+    _controller = PersistentTabController(initialIndex: 1);
     super.initState();
   }
 
@@ -36,13 +37,20 @@ class _ClientHomeState extends State<ClientHome> {
     final futurePractices = context.read<List<Practice>>(); //TODO delete
     final database = context.read<FirestoreDatabase>();
     final appInfo = context.read<AppInfo>();
+    final userInfo = context.read<UserInfo>();
+    final practicesRegisteredTo =
+        _practicesRegisteredTo(futurePractices, userInfo);
     return [
       Center(
         child: CustomButton(msg: 'disconnect', onTap: _signOut),
       ),
-      ClientMainScreen(appInfo: appInfo),
+      ClientMainScreen(
+          database: database,
+          appInfo: appInfo,
+          practicesRegisteredTo: practicesRegisteredTo),
       RegisterToPracticeScreen(
-          futurePractices: futurePractices, database: database),
+          // futurePractices: futurePractices, database: database
+          ),
     ];
   }
 
@@ -50,20 +58,20 @@ class _ClientHomeState extends State<ClientHome> {
     final colors = Theme.of(context).colorScheme;
     return [
       PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.settings),
-        title: ("add"),
+        icon: const Icon(Icons.card_membership_outlined),
+        title: ("כרטיסיה"),
         activeColorPrimary: colors.primary,
         inactiveColorPrimary: CupertinoColors.systemGrey,
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(CupertinoIcons.home),
-        title: ("Home"),
+        title: ("ראשי"),
         activeColorPrimary: colors.primary,
         inactiveColorPrimary: CupertinoColors.systemGrey,
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(CupertinoIcons.settings),
-        title: ("Settings"),
+        title: ("הגדרות"),
         activeColorPrimary: colors.primary,
         inactiveColorPrimary: CupertinoColors.systemGrey,
       ),
@@ -104,5 +112,12 @@ class _ClientHomeState extends State<ClientHome> {
         title: 'התנתקות',
         message: 'האם להתנתק מהמערכת?');
     if (didRequestLeave == OkCancelResult.ok) auth.signOut();
+  }
+
+  List<Practice> _practicesRegisteredTo(
+      List<Practice> futurePractices, UserInfo userInfo) {
+    return futurePractices
+        .where((practice) => practice.isUserRegistered(userInfo.uid))
+        .toList();
   }
 }

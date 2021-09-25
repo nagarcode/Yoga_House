@@ -96,7 +96,6 @@ class Practice {
     for (var userInfo in registeredParticipants) {
       toReturn[userInfo.uid] = userInfo.toMap();
     }
-    print(toReturn);
     return toReturn;
   }
 
