@@ -194,8 +194,8 @@ class _SignInScreenState extends State<SignInScreen> {
             icon: FaIcon(FontAwesomeIcons.hashtag,
                 color: theme.colorScheme.secondary),
             hintText: "קוד אימות",
-            hintStyle:
-                TextStyle(color: Colors.grey, fontFamily: "Sen", fontSize: 18)),
+            hintStyle: const TextStyle(
+                color: Colors.grey, fontFamily: "Sen", fontSize: 18)),
       ),
     );
   }

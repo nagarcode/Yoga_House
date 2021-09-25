@@ -315,7 +315,7 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
             labelText: "משך האימון",
             errorText: field.errorText,
           ),
-          child: Container(
+          child: SizedBox(
             height: 200,
             child: CupertinoTimerPicker(
               mode: CupertinoTimerPickerMode.hm,

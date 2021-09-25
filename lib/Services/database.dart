@@ -17,8 +17,21 @@ class FirestoreDatabase {
 
   FirestoreDatabase({required this.uid});
 
-  setDocument(String path, Map<String, dynamic> data) async {
+  Future<void> setDocument(String path, Map<String, dynamic> data) async {
     return await _instance.doc(path).set(data);
+  }
+
+  Stream<List<T>> _collectionStream<T>(
+      {required String path,
+      required T Function(Map<String, dynamic> data) builder}) {
+    debugPrint('FIREBASE QUERY: getting stream: $path');
+    final reference = _instance.collection(path);
+    final snapshots = reference.snapshots();
+    return snapshots.map((snapshot) => snapshot.docs
+        .map(
+          (snapshot) => builder(snapshot.data()),
+        )
+        .toList());
   }
 
   Stream<T> _streamFromDoc<T>(
@@ -34,6 +47,18 @@ class FirestoreDatabase {
         return builder(data);
       }
     });
+  }
+
+  Stream<List<Practice>> futurePracticesStream() {
+    final path = APIPath.futurePractices();
+    return _collectionStream(
+        path: path, builder: (data) => Practice.fromMap(data));
+  }
+
+  Stream<List<Practice>> userFuturePracticesStream(String uid) {
+    final path = APIPath.userFuturePractices(uid);
+    return _collectionStream(
+        path: path, builder: (data) => Practice.fromMap(data));
   }
 
   Future<void> saveDeviceToken(String fcmToken) {
@@ -112,8 +137,48 @@ class FirestoreDatabase {
     }
   }
 
-  addPractice(Practice practice) async {
-    final path = APIPath.practice(practice.id);
-    await setDocument(path, practice.toMap());
+  Future<void> addPractice(Practice practice) async {
+    final path = APIPath.futurePractice(practice.id);
+    return await setDocument(path, practice.toMap());
+  }
+
+  Future<bool> registerUserToPracticeTransaction(
+      UserInfo userToAdd, String practiceID) async {
+    return await _instance.runTransaction<bool>((transaction) async {
+      final practiceRef = _instance.doc(APIPath.futurePractice(practiceID));
+      final practiceSnapshot = await transaction.get(practiceRef);
+      final data = practiceSnapshot.data();
+      if (data == null) return false;
+      final practicePre = Practice.fromMap(data);
+      if (practicePre.isFull() || practicePre.isUserRegistered(userToAdd.uid)) {
+        return false;
+      }
+      // final newNumOfRegistered = practicePre.numOfRegisteredParticipants + 1;
+      practicePre.registeredParticipants.add(userToAdd);
+      final practicePost = practicePre;
+      transaction.update(practiceRef, practicePost.toMap());
+      return true;
+    });
+  }
+
+  Future<bool> unregisterFromPracticeTransaction(
+      UserInfo userToRemove, String practiceID) async {
+    return await _instance.runTransaction<bool>((transaction) async {
+      final practiceRef = _instance.doc(APIPath.futurePractice(practiceID));
+      final practiceSnapshot = await transaction.get(practiceRef);
+      final data = practiceSnapshot.data();
+      if (data == null) return false;
+      final practicePre = Practice.fromMap(data);
+      if (practicePre.isEmpty() ||
+          !practicePre.isUserRegistered(userToRemove.uid)) {
+        return false;
+      }
+      // final newNumOfRegistered = practicePre.numOfRegisteredParticipants - 1;
+      practicePre.removeParticipant(userToRemove);
+
+      final practicePost = practicePre;
+      transaction.update(practiceRef, practicePost.toMap());
+      return true;
+    });
   }
 }

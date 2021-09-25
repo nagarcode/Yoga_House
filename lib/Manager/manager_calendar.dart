@@ -13,7 +13,6 @@ import 'package:yoga_house/Services/shared_prefs.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
 import 'package:yoga_house/common_widgets/card_selection_tile.dart';
-import 'package:intl/intl.dart';
 
 class ManagerCalendar extends StatefulWidget {
   final SharedPrefs prefs;
@@ -364,7 +363,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
             labelText: "זמן התחלה",
             errorText: field.errorText,
           ),
-          child: Container(
+          child: SizedBox(
             height: 200,
             child: CupertinoDatePicker(
               use24hFormat: true,
@@ -388,7 +387,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
             labelText: "משך שיעור",
             errorText: field.errorText,
           ),
-          child: Container(
+          child: SizedBox(
             height: 200,
             child: CupertinoTimerPicker(
               initialTimerDuration: Duration(minutes: _durationMinutes),
@@ -460,18 +459,20 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
     final userInfo = context.read<UserInfo>();
     final endTime = _startTime!.add(Duration(minutes: _durationMinutes));
     final practice = Practice(
-        Utils.idFromTime(),
-        _name,
-        _lvl,
-        userInfo.name,
-        userInfo.uid,
-        _description,
-        _location,
-        _startTime!,
-        endTime,
-        _maxParticipants,
-        [],
-        0);
+      Utils.idFromTime(),
+      _name,
+      _lvl,
+      userInfo.name,
+      userInfo.uid,
+      _description,
+      _location,
+      _startTime!,
+      endTime,
+      _maxParticipants,
+      [],
+      0,
+      // 0
+    );
     await widget.database.addPractice(practice);
   }
 }

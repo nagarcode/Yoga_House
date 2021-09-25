@@ -3,8 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
+import 'package:yoga_house/Client/register_to_practice_screen.dart';
+import 'package:yoga_house/Practice/practice.dart';
+import 'package:yoga_house/Services/app_info.dart';
 import 'package:yoga_house/Services/auth.dart';
+import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/common_widgets/custom_button.dart';
+
+import 'client_main_screen.dart';
 
 class ClientHome extends StatefulWidget {
   const ClientHome({Key? key}) : super(key: key);
@@ -17,7 +23,7 @@ class _ClientHomeState extends State<ClientHome> {
   PersistentTabController? _controller;
   @override
   void initState() {
-    _controller = PersistentTabController(initialIndex: 0);
+    _controller = PersistentTabController(initialIndex: 2);
     super.initState();
   }
 
@@ -27,33 +33,38 @@ class _ClientHomeState extends State<ClientHome> {
   }
 
   List<Widget> _buildScreens() {
+    final futurePractices = context.read<List<Practice>>(); //TODO delete
+    final database = context.read<FirestoreDatabase>();
+    final appInfo = context.read<AppInfo>();
     return [
       Center(
         child: CustomButton(msg: 'disconnect', onTap: _signOut),
       ),
-      Center(child: Text('screen2')),
-      Center(child: Text('screen3')),
+      ClientMainScreen(appInfo: appInfo),
+      RegisterToPracticeScreen(
+          futurePractices: futurePractices, database: database),
     ];
   }
 
   List<PersistentBottomNavBarItem> _navBarItems() {
+    final colors = Theme.of(context).colorScheme;
     return [
       PersistentBottomNavBarItem(
-        icon: Icon(CupertinoIcons.home),
-        title: ("Home"),
-        activeColorPrimary: CupertinoColors.activeBlue,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(CupertinoIcons.settings),
+        icon: const Icon(CupertinoIcons.settings),
         title: ("add"),
-        activeColorPrimary: CupertinoColors.activeBlue,
+        activeColorPrimary: colors.primary,
         inactiveColorPrimary: CupertinoColors.systemGrey,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(CupertinoIcons.settings),
+        icon: const Icon(CupertinoIcons.home),
+        title: ("Home"),
+        activeColorPrimary: colors.primary,
+        inactiveColorPrimary: CupertinoColors.systemGrey,
+      ),
+      PersistentBottomNavBarItem(
+        icon: const Icon(CupertinoIcons.settings),
         title: ("Settings"),
-        activeColorPrimary: CupertinoColors.activeBlue,
+        activeColorPrimary: colors.primary,
         inactiveColorPrimary: CupertinoColors.systemGrey,
       ),
     ];

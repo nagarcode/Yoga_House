@@ -8,7 +8,6 @@ class ColorsDisplayScreen extends StatelessWidget {
     final purp = Colors.purple[200];
     final pink = Colors.deepOrange[50];
     final cyan = Colors.teal[200];
-    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
         appBar: AppBar(
           title: Text(

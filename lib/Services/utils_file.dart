@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:provider/provider.dart';
 import 'package:yoga_house/common_widgets/card_selection_tile.dart';
-
+import 'package:intl/intl.dart';
 import 'auth.dart';
 
 class Utils {
@@ -86,4 +86,13 @@ class Utils {
   }
 
   static String idFromTime() => DateTime.now().toIso8601String();
+  //DateTime
+  static String numericDayMonthYearFromDateTime(DateTime dateTime) =>
+      DateFormat.yMd('he_IL').format(dateTime);
+
+  static String vebouseDayFromDateTime(DateTime dateTime) =>
+      DateFormat.E('he_IL').format(dateTime);
+
+  static String hourFromDateTime(DateTime dateTime) =>
+      DateFormat.Hm().format(dateTime);
 }

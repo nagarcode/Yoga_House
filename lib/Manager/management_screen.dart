@@ -27,11 +27,12 @@ class _ManagementScreenState extends State<ManagementScreen> {
   Widget _signOutBtn() {
     final theme = Theme.of(context);
     return TextButton(
-        onPressed: () => Utils.signOut(context),
-        child: Text(
-          'התנתק',
-          style: theme.textTheme.subtitle1?.copyWith(color: Colors.white),
-        ));
+      onPressed: () => Utils.signOut(context),
+      child: Text(
+        'התנתק',
+        style: theme.textTheme.subtitle1?.copyWith(color: Colors.white),
+      ),
+    );
   }
 
   SettingsSection _managementSection() {

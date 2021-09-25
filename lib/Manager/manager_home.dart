@@ -27,7 +27,7 @@ class _ManagerHomeState extends State<ManagerHome> {
 
   List<Widget> _buildScreens() {
     return [
-      Center(
+      const Center(
         child: Text('screen1'),
       ),
       const Center(child: ManagerMainScreen()),

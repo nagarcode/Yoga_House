@@ -128,7 +128,7 @@ class MyApp extends StatelessWidget {
     return AppBarTheme(
       backgroundColor: _colorScheme().primary,
       foregroundColor: _colorScheme().primary,
-      iconTheme: IconThemeData(color: Colors.white),
+      iconTheme: const IconThemeData(color: Colors.white),
       shadowColor: Colors.white,
     );
   }

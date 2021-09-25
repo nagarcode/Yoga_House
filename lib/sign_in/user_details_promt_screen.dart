@@ -201,7 +201,7 @@ class _UserDetailsPromtScreenState extends State<UserDetailsPromtScreen> {
 
   _oneLastThing() {
     final textTheme = Theme.of(context).textTheme;
-    final theme = Theme.of(context);
+    // final theme = Theme.of(context);
     return Center(
       child: Text(
         'נעים להכיר :)',

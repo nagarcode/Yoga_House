@@ -13,7 +13,7 @@ class InfoScreen extends StatelessWidget {
     );
   }
 
-  const InfoScreen(this.pageType);
+  const InfoScreen(this.pageType, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,6 @@ class InfoScreen extends StatelessWidget {
     switch (pageType) {
       case PageType.managerTerminated:
         return _adminTerminatedText();
-        break;
       case PageType.clientTerminated:
         return _clientTerminatedText();
       default:
@@ -41,14 +40,14 @@ class InfoScreen extends StatelessWidget {
   }
 
   Widget _adminTerminatedText() {
-    return Text(
-      'גישתך לאפליקציה נחסמה אוטומטית. יכולות להיות מספר סיבות לכך - אי תשלום חודשי בזמן, הפרת חוזה יסודית, או סיבה אחרת. לפרטים צרי קשר. שימי לב! כרגע ללקוחות יש גישה כשרגיל לאפליקציה והן יכולות לקבוע תורים, אך במידה ומדובר בהפרת חוזה ולא תסדירי את העניין בתוך שלושה ימי עסקים - גם הגישה ללקוחות תיחסם. פעולה זו היא אוטומטיתץ.',
+    return const Text(
+      'גישתך לאפליקציה נחסמה אוטומטית. יכולות להיות מספר סיבות לכך - אי תשלום חודשי בזמן, הפרת חוזה יסודית, או סיבה אחרת. לפרטים צרי קשר. שימי לב! כרגע ללקוחות יש גישה כשרגיל לאפליקציה והן יכולות לקבוע תורים, אך במידה ומדובר בהפרת חוזה ולא תסדירי את העניין בתוך שלושה ימי עסקים - גם הגישה ללקוחות תיחסם. פעולה זו היא אוטומטית.',
       textAlign: TextAlign.center,
     );
   }
 
   Widget _clientTerminatedText() {
-    return Text('האפליקציה מושבתת באופן זמני. עמכם הסליחה.');
+    return const Text('האפליקציה מושבתת באופן זמני. עמכם הסליחה.');
   }
 }
 

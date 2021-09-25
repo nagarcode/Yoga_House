@@ -86,4 +86,11 @@ class UserInfo {
         submittedHealthAssurance ?? this.submittedHealthAssurance,
         approvedTermsOfService ?? this.approvedTermsOfService);
   }
+
+  // bool isRegisteredToPractice(String practiceID) {
+  //   for (var practice in practicesRegistered) {
+  //     if (practice.id == practiceID) return true;
+  //   }
+  //   return false;
+  // }
 }

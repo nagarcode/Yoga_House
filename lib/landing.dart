@@ -4,6 +4,7 @@ import 'package:yoga_house/Client/client_home.dart';
 import 'package:yoga_house/Manager/manager_home.dart';
 import 'package:yoga_house/sign_in/sign_in_screen.dart';
 import 'package:yoga_house/sign_in/user_details_promt_screen.dart';
+import 'Practice/practice.dart';
 import 'Services/app_info.dart';
 import 'Services/auth.dart';
 import 'Services/database.dart';
@@ -41,24 +42,39 @@ class LandingPage extends StatelessWidget {
                   if (Utils.connectionStateInvalid(userInfoSnapshot)) {
                     return const SplashScreen();
                   }
-                  final userInfo = userInfoSnapshot.data;
+                  final userInfoNoPractices = userInfoSnapshot.data;
                   _checkUserInfoErrorAndInit(userInfoSnapshot, database, user);
-                  if (userInfo == null) {
+                  if (userInfoNoPractices == null) {
                     return const SplashScreen();
                   }
-                  return MultiProvider(
-                    providers: [
-                      Provider<AppUser>.value(value: user),
-                      Provider<UserInfo>.value(value: userInfo),
-                      Provider<FirestoreDatabase>.value(value: database),
-                      Provider<SharedPrefs>.value(value: sharedPrefs),
-                    ],
-                    child: !_hasDetails(userInfo)
-                        ? UserDetailsPromtScreen(auth: auth, database: database)
-                        : _isManager(userInfo)
-                            ? _managerSubTree(database)
-                            : clientSubTree(database),
-                  );
+
+                  return StreamBuilder<List<Practice>>(
+                      stream: database
+                          .userFuturePracticesStream(userInfoNoPractices.uid),
+                      builder: (context, userPracticesSnapshot) {
+                        if (Utils.connectionStateInvalid(
+                            userPracticesSnapshot)) {
+                          return const SplashScreen();
+                        }
+                        //TODO move past practices to Past_Practices collection(in the DB)
+                        final userFuturePractices = userPracticesSnapshot.data;
+                        final userInfo = userInfoNoPractices.copyWith(
+                            practicesRegistered: userFuturePractices);
+                        return MultiProvider(
+                          providers: [
+                            Provider<AppUser>.value(value: user),
+                            Provider<UserInfo>.value(value: userInfo),
+                            Provider<FirestoreDatabase>.value(value: database),
+                            Provider<SharedPrefs>.value(value: sharedPrefs),
+                          ],
+                          child: !_hasDetails(userInfo)
+                              ? UserDetailsPromtScreen(
+                                  auth: auth, database: database)
+                              : _isManager(userInfo)
+                                  ? _managerSubTree(database)
+                                  : clientSubTree(database),
+                        );
+                      });
                 });
           }
         }
@@ -101,11 +117,27 @@ class LandingPage extends StatelessWidget {
           if (appInfo == null) {
             return const SplashScreen();
           }
-          return Provider<AppInfo>.value(
-              value: appInfo,
-              child: appInfo.isClientTerminated
-                  ? const InfoScreen(PageType.clientTerminated)
-                  : const ClientHome());
+          return StreamBuilder<List<Practice>>(
+              stream: database.futurePracticesStream(),
+              builder: (context, futurePracticesSnapshot) {
+                if (Utils.connectionStateInvalid(futurePracticesSnapshot)) {
+                  return const SplashScreen();
+                }
+                final futurePractices = futurePracticesSnapshot.data;
+                if (futurePractices == null) {
+                  return const SplashScreen();
+                }
+                return MultiProvider(
+                  providers: [
+                    Provider<AppInfo>.value(value: appInfo),
+                    Provider<List<Practice>>.value(value: futurePractices),
+                  ],
+                  child: appInfo.isClientTerminated
+                      ? const InfoScreen(PageType.clientTerminated)
+                      // ignore: prefer_const_constructors
+                      : ClientHome(),
+                );
+              });
         });
   }
 

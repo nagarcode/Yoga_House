@@ -24,13 +24,14 @@ class _ManagerMainScreenState extends State<ManagerMainScreen> {
   Widget build(BuildContext context) {
     final database = context.read<FirestoreDatabase>();
     final prefs = context.read<SharedPrefs>();
-    final theme = Theme.of(context);
+    // final theme = Theme.of(context);
     return Scaffold(
-        key: _scaffoldKey,
-        appBar: AppBar(
-          title: Utils.appBarTitle(context, 'ראשי'),
-        ),
-        body: ManagerCalendar(prefs,
-            parentScaffoldKey: _scaffoldKey, database: database));
+      key: _scaffoldKey,
+      appBar: AppBar(
+        title: Utils.appBarTitle(context, 'יוגה  האוס'),
+      ),
+      body: ManagerCalendar(prefs,
+          parentScaffoldKey: _scaffoldKey, database: database),
+    );
   }
 }
