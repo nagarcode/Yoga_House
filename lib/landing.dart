@@ -34,7 +34,7 @@ class LandingPage extends StatelessWidget {
             return SignInScreen(auth: auth);
           } else {
             //user != null
-            final database = FirestoreDatabase(uid: user.uid);
+            final database = FirestoreDatabase(currentUserUID: user.uid);
             //TODO insert user's registered practices streambuilder here
             return StreamBuilder<UserInfo>(
                 stream: database.userInfoStream(user.uid),
@@ -42,39 +42,25 @@ class LandingPage extends StatelessWidget {
                   if (Utils.connectionStateInvalid(userInfoSnapshot)) {
                     return const SplashScreen();
                   }
-                  final userInfoNoPractices = userInfoSnapshot.data;
+                  final userInfo = userInfoSnapshot.data;
                   _checkUserInfoErrorAndInit(userInfoSnapshot, database, user);
-                  if (userInfoNoPractices == null) {
+                  if (userInfo == null) {
                     return const SplashScreen();
                   }
-
-                  return StreamBuilder<List<Practice>>(
-                      stream: database
-                          .userFuturePracticesStream(userInfoNoPractices.uid),
-                      builder: (context, userPracticesSnapshot) {
-                        if (Utils.connectionStateInvalid(
-                            userPracticesSnapshot)) {
-                          return const SplashScreen();
-                        }
-                        //TODO move past practices to Past_Practices collection(in the DB)
-                        final userFuturePractices = userPracticesSnapshot.data;
-                        final userInfo = userInfoNoPractices.copyWith(
-                            practicesRegistered: userFuturePractices);
-                        return MultiProvider(
-                          providers: [
-                            Provider<AppUser>.value(value: user),
-                            Provider<UserInfo>.value(value: userInfo),
-                            Provider<FirestoreDatabase>.value(value: database),
-                            Provider<SharedPrefs>.value(value: sharedPrefs),
-                          ],
-                          child: !_hasDetails(userInfo)
-                              ? UserDetailsPromtScreen(
-                                  auth: auth, database: database)
-                              : _isManager(userInfo)
-                                  ? _managerSubTree(database)
-                                  : clientSubTree(database),
-                        );
-                      });
+                  //TODO move past practices to Past_Practices collection(in the DB)
+                  return MultiProvider(
+                    providers: [
+                      Provider<AppUser>.value(value: user),
+                      Provider<UserInfo>.value(value: userInfo),
+                      Provider<FirestoreDatabase>.value(value: database),
+                      Provider<SharedPrefs>.value(value: sharedPrefs),
+                    ],
+                    child: !_hasDetails(userInfo)
+                        ? UserDetailsPromtScreen(auth: auth, database: database)
+                        : _isManager(userInfo)
+                            ? _managerSubTree(database)
+                            : clientSubTree(database),
+                  );
                 });
           }
         }

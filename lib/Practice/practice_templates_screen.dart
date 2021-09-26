@@ -14,6 +14,7 @@ import 'package:yoga_house/Services/utils_file.dart';
 class PracticeTemplatesScreen extends StatefulWidget {
   final FirestoreDatabase database;
   final SharedPrefs sharedPrefs;
+
   static Future<void> pushToTabBar(BuildContext context) async {
     final database = context.read<FirestoreDatabase>();
     final sharedPrefs = context.read<SharedPrefs>();
@@ -94,20 +95,19 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
         context: context,
         builder: (ctx) {
           return Utils.bottomSheetFormBuilder(
-              context,
-              [
+              inputFields: [
                 _practiceNameInput(ctx, labelStyle!),
                 _descriptionInput(ctx, labelStyle),
                 _lvlInput(ctx, labelStyle),
                 _locationInput(ctx, labelStyle),
                 _maxParticipantsInput(ctx, labelStyle),
               ],
-              'הוסף אימון',
-              () => _submitForm(ctx),
-              ctx,
-              style!,
-              _formKey,
-              'אימון קבוע חדש');
+              confirmText: 'הוסף אימון',
+              onConfirmed: () => _submitForm(ctx),
+              innerCtx: ctx,
+              style: style!,
+              formKey: _formKey,
+              title: 'אימון קבוע חדש');
         });
   }
 
@@ -118,16 +118,15 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
         context: context,
         builder: (ctx) {
           return Utils.bottomSheetFormBuilder(
-              context,
-              [
+              inputFields: [
                 _durationInput(ctx, labelStyle!),
               ],
-              'אישור',
-              () => _submitDurationForm(ctx),
-              ctx,
-              style!,
-              _durationFormKey,
-              'משך האימון');
+              confirmText: 'אישור',
+              onConfirmed: () => _submitDurationForm(ctx),
+              innerCtx: ctx,
+              style: style!,
+              formKey: _durationFormKey,
+              title: 'משך האימון');
         });
   }
 

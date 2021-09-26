@@ -1,7 +1,11 @@
+import 'package:yoga_house/Services/utils_file.dart';
+
 const serviceGiverID = 'Yuval Giat';
 
 class APIPath {
   static String userInfo(String uid) => 'users/$uid';
+
+  static String userInfoCollection() => 'users';
 
   static String userFuturePractices(String uid) =>
       '${userInfo(uid)}/Future_Practices';
@@ -21,6 +25,12 @@ class APIPath {
   static String pastPractices() => 'Past_Practices';
 
   static String pastPractice(String id) => 'Past_Practices/$id';
+
+  static String userPunchCardHistoryCollection(String uid) =>
+      'users/$uid/PunchCard_History';
+
+  static String userPunchCardFromHistory(String uid, DateTime purchasedOn) =>
+      'users/$uid/PunchCard_History/${Utils.idFromPastTime(purchasedOn)}';
 
   //Assets:
   static String logo() => 'assets/images/cropped_logo.png';

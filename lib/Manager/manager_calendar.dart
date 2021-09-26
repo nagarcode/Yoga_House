@@ -193,20 +193,19 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
         context: widget.parentScaffoldKey.currentContext!,
         builder: (ctx) {
           return Utils.bottomSheetFormBuilder(
-              context,
-              [
+              inputFields: [
                 _nameInput(ctx, labelStyle),
                 _descriptionInput(ctx, labelStyle),
                 _lvlInput(ctx, labelStyle),
                 _locationInput(ctx, labelStyle),
                 _maxParticipantsInput(ctx, labelStyle),
               ],
-              'הוסף אימון',
-              () => _submitForm(ctx),
-              ctx,
-              style,
-              _formKey,
-              'הכנס אימון');
+              confirmText: 'הוסף אימון',
+              onConfirmed: () => _submitForm(ctx),
+              innerCtx: ctx,
+              style: style,
+              formKey: _formKey,
+              title: 'הכנס אימון');
         });
   }
 
@@ -332,16 +331,15 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
         context: context,
         builder: (ctx) {
           return Utils.bottomSheetFormBuilder(
-              context,
-              [
+              inputFields: [
                 _dateInput(ctx, labelStyle),
               ],
-              'אישור',
-              () => _submitDateForm(ctx),
-              ctx,
-              style,
-              _dateFormKey,
-              'זמן התחלה');
+              confirmText: 'אישור',
+              onConfirmed: () => _submitDateForm(ctx),
+              innerCtx: ctx,
+              style: style,
+              formKey: _dateFormKey,
+              title: 'זמן התחלה');
         });
   }
 
@@ -428,16 +426,15 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
         context: context,
         builder: (ctx) {
           return Utils.bottomSheetFormBuilder(
-              context,
-              [
+              inputFields: [
                 _durationInput(ctx, labelStyle),
               ],
-              'אישור',
-              () => _submitDurationForm(ctx),
-              ctx,
-              style,
-              _durationFormKey,
-              'משך שיעור');
+              confirmText: 'אישור',
+              onConfirmed: () => _submitDurationForm(ctx),
+              innerCtx: ctx,
+              style: style,
+              formKey: _durationFormKey,
+              title: 'משך שיעור');
         });
   }
 

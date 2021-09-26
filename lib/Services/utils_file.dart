@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:whatsapp_unilink/whatsapp_unilink.dart';
 import 'package:yoga_house/common_widgets/card_selection_tile.dart';
 import 'package:intl/intl.dart';
 import 'auth.dart';
@@ -54,15 +56,22 @@ class Utils {
         child: child);
   }
 
+  static String stripPhonePrefix(String str) {
+    if (str.length > 4) {
+      return '0${str.substring(4)}';
+    } else {
+      return str;
+    }
+  }
+
   static Widget bottomSheetFormBuilder(
-      BuildContext outerContext,
-      List<Widget> inputFields,
-      String confirmText,
-      void Function() onConfirmed,
-      BuildContext innerCtx,
-      TextStyle style,
-      formKey,
-      String title) {
+      {required List<Widget> inputFields,
+      required String confirmText,
+      required void Function() onConfirmed,
+      required BuildContext innerCtx,
+      required TextStyle style,
+      required Key formKey,
+      required String title}) {
     return CupertinoActionSheet(
       title: Text(title),
       actions: [
@@ -85,7 +94,33 @@ class Utils {
     );
   }
 
+  static launchWhatsapp(String phoneWithPrefix) async {
+    final link = WhatsAppUnilink(phoneNumber: phoneWithPrefix);
+    await launch('$link');
+  }
+
+  static void call(String phoneNoPrefix, BuildContext context) async {
+    final url = 'tel://' + phoneNoPrefix;
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      _showCantLaunchDialog('לא ניתן לבצע את הפעולה', context);
+    }
+  }
+
+  static _showCantLaunchDialog(String msg, BuildContext context) async {
+    await showOkAlertDialog(
+      context: context,
+      title: 'שגיאה',
+      message: msg,
+      okLabel: 'אישור',
+    );
+  }
+
   static String idFromTime() => DateTime.now().toIso8601String();
+
+  static String idFromPastTime(DateTime time) => time.toIso8601String();
+
   //DateTime
   static String numericDayMonthYearFromDateTime(DateTime dateTime) =>
       DateFormat.yMd('he_IL').format(dateTime);

@@ -116,8 +116,11 @@ class _UserDetailsPromtScreenState extends State<UserDetailsPromtScreen> {
                 _setIsLoading(true);
                 await widget.auth.setName(firstName.text, lastName.text);
 
-                await widget.database.initNewUserInfo(uid, user.phoneNumber,
-                    '${firstName.text} ${lastName.text}', email.text);
+                await widget.database.initNewUserInfo(
+                    uid,
+                    '${firstName.text} ${lastName.text}',
+                    user.phoneNumber,
+                    email.text);
                 _setIsLoading(false);
                 Navigator.of(context).pushReplacement(MaterialPageRoute(
                   builder: (context) => LandingPage(

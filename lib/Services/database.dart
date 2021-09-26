@@ -6,16 +6,17 @@ import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Practice/practice_template.dart';
 import 'package:yoga_house/Services/shared_prefs.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
+import 'package:yoga_house/common_widgets/punch_card.dart';
 
 import 'api_path.dart';
 import 'app_info.dart';
 
 class FirestoreDatabase {
-  final String uid;
+  final String currentUserUID;
 
   final _instance = FirebaseFirestore.instance;
 
-  FirestoreDatabase({required this.uid});
+  FirestoreDatabase({required this.currentUserUID});
 
   Future<void> setDocument(String path, Map<String, dynamic> data) async {
     return await _instance.doc(path).set(data);
@@ -62,7 +63,7 @@ class FirestoreDatabase {
   }
 
   Future<void> saveDeviceToken(String fcmToken) {
-    final path = APIPath.fcmToken(uid, fcmToken);
+    final path = APIPath.fcmToken(currentUserUID, fcmToken);
     debugPrint('Writing fcm token: $path');
     final doc = _instance.doc(path);
     return doc.set({
@@ -179,6 +180,51 @@ class FirestoreDatabase {
       final practicePost = practicePre;
       transaction.update(practiceRef, practicePost.toMap());
       return true;
+    });
+  }
+
+  Stream<List<UserInfo>> allUsersInfoStream() {
+    final path = APIPath.userInfoCollection();
+    return _collectionStream(
+        path: path, builder: (data) => UserInfo.fromMap(data));
+  }
+
+  Future<void> addNewPunchCardTransaction(
+      String uid, Punchcard punchCardToAdd) async {
+    final userInfoRef = _instance.doc(APIPath.userInfo(uid));
+    final punchCardInHistoryRef = _instance
+        .doc(APIPath.userPunchCardFromHistory(uid, punchCardToAdd.purchasedOn));
+    return await _instance.runTransaction((transaction) async {
+      transaction.update(userInfoRef, {'punchcard': punchCardToAdd.toMap()});
+      transaction.set(punchCardInHistoryRef, punchCardToAdd.toMap());
+    });
+  }
+
+  // Future<void> addNewPunchCardTransacrion( WITH COPYWITH
+  //     String uid, Punchcard punchcardToAdd) async {
+  //   final userInfoRef = _instance.doc(APIPath.userInfo(uid));
+  //   final punchCardInHistoryRef = _instance
+  //       .doc(APIPath.userPunchCardFromHistory(uid, punchcardToAdd.purchasedOn));
+  //   return await _instance.runTransaction((transaction) async {
+  //     final userInfoSnapshot = await transaction.get(userInfoRef);
+  //     final data = userInfoSnapshot.data();
+  //     if (data == null) return;
+  //     final userInfoPre = UserInfo.fromMap(data);
+  //     final userInfoPost = userInfoPre.copyWith(punchCard: punchcardToAdd);
+  //     transaction.set(userInfoRef, userInfoPost.toMap());
+  //     transaction.set(punchCardInHistoryRef, punchcardToAdd.toMap());
+  //   });
+  // }
+
+  Future<void> updatePunchCardTransaction(String uid, Punchcard punchCardToAdd,
+      Punchcard aggregatedPunchcard) async {
+    final userInfoRef = _instance.doc(APIPath.userInfo(uid));
+    final punchCardToAddRefInHistory = _instance
+        .doc(APIPath.userPunchCardFromHistory(uid, punchCardToAdd.purchasedOn));
+    return await _instance.runTransaction((transaction) async {
+      transaction
+          .update(userInfoRef, {'punchcard': aggregatedPunchcard.toMap()});
+      transaction.set(punchCardToAddRefInHistory, punchCardToAdd.toMap());
     });
   }
 }

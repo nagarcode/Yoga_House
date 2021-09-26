@@ -128,7 +128,7 @@ class Auth implements AuthBase {
     final currentUser = _firebaseAuth.currentUser;
     if (currentUser == null) return;
     final uid = currentUser.uid;
-    final database = FirestoreDatabase(uid: uid);
+    final database = FirestoreDatabase(currentUserUID: uid);
     final fcm = FirebaseMessaging.instance;
     final fcmToken = await fcm.getToken();
     if (fcmToken != null) database.saveDeviceToken(fcmToken);

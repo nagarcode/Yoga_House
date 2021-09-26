@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
+import 'package:provider/provider.dart';
+import 'package:yoga_house/Manager/clients_screen.dart';
 import 'package:yoga_house/Manager/management_screen.dart';
 import 'package:yoga_house/Manager/manager_main_screen.dart';
+import 'package:yoga_house/Services/database.dart';
 
 class ManagerHome extends StatefulWidget {
   //TODO add notification stuff to initstate
@@ -16,7 +19,7 @@ class _ManagerHomeState extends State<ManagerHome> {
   PersistentTabController? _controller;
   @override
   void initState() {
-    _controller = PersistentTabController(initialIndex: 1);
+    _controller = PersistentTabController(initialIndex: 0);
     super.initState();
   }
 
@@ -26,10 +29,9 @@ class _ManagerHomeState extends State<ManagerHome> {
   }
 
   List<Widget> _buildScreens() {
+    final database = context.read<FirestoreDatabase>();
     return [
-      const Center(
-        child: Text('screen1'),
-      ),
+      ClientsScreen(database: database),
       const Center(child: ManagerMainScreen()),
       const Center(child: ManagementScreen()),
     ];

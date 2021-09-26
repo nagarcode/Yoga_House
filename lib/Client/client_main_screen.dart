@@ -46,13 +46,10 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
             children: [
               _logo(),
               _homepageText(theme, widget.appInfo),
-              SizedBox(
-                height: 60,
-                child: _registerToPracticeButton,
-              ),
               if (widget.practicesRegisteredTo.isNotEmpty) _practicesText,
               if (widget.practicesRegisteredTo.isNotEmpty)
                 _practiceCardsListView(),
+              SizedBox(height: 60, child: _registerToPracticeButton),
             ],
           ),
         ),
@@ -61,7 +58,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
   }
 
   Widget get _registerToPracticeButton => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 8),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(
