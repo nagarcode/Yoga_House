@@ -63,8 +63,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               ),
               ListTile(
                 leading: Icon(Icons.phone, color: theme.colorScheme.primary),
-                title: Text(Utils.stripPhonePrefix(
-                    widget.userInfo.phoneNumber + ' (לחץ להתקשר)')),
+                title: widget.isManagerView
+                    ? Text(Utils.stripPhonePrefix(
+                        widget.userInfo.phoneNumber + ' (לחץ להתקשר)'))
+                    : Text(Utils.stripPhonePrefix(widget.userInfo.phoneNumber)),
                 onTap: () => Utils.call(widget.userInfo.phoneNumber, context),
               ),
               ListTile(
@@ -85,7 +87,14 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       return Text('טרם נרכשה כרטיסיה. לרכישה אנא צור קשר.',
           textAlign: TextAlign.center, style: theme.textTheme.bodyText1);
     } else {
-      return PunchcardView(punchcard: punchCard);
+      return PunchcardView(
+        punchcard: punchCard,
+        isManagerView: widget.isManagerView,
+        decrementCallback: () =>
+            widget.userInfo.decrementPunchcard(widget.database, context),
+        incrementCallback: () =>
+            widget.userInfo.incrementPunchcard(widget.database, context),
+      );
     }
   }
 }

@@ -32,8 +32,8 @@ class _ManagerHomeState extends State<ManagerHome> {
     final database = context.read<FirestoreDatabase>();
     return [
       ClientsScreen(database: database),
-      const Center(child: ManagerMainScreen()),
-      const Center(child: ManagementScreen()),
+      ManagerMainScreen(),
+      ManagementScreen(),
     ];
   }
 

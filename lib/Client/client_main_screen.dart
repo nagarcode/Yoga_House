@@ -68,7 +68,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
             style: TextStyle(fontSize: 20),
           ),
           onPressed: () async {
-            await RegisterToPracticeScreen.pushToTabBar(context);
+            await RegisterToPracticeScreen.pushToTabBar(context, false);
           },
         ),
       );
@@ -155,7 +155,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
       waitingListCallback: () {}, //TODO change
       isRegistered: practice.isUserRegistered(userInfo.uid),
       unregisterCallback: practice.unregisterFromPracticeCallback(
-          userInfo, widget.database, context),
+          userInfo, widget.database, context, widget.appInfo),
     );
   }
 

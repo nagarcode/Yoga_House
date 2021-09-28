@@ -1,10 +1,10 @@
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:provider/provider.dart';
 import 'package:yoga_house/Services/database.dart';
-import 'package:yoga_house/Services/splash_screen.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
 import 'package:yoga_house/common_widgets/punch_card.dart';
@@ -80,7 +80,7 @@ class _NewPunchcardFormState extends State<NewPunchcardForm> {
       decoration:
           InputDecoration(labelText: 'מס׳ ניקובים', labelStyle: labelStyle),
       onChanged: (newStr) {
-        if (newStr != null) _numOfPunches = int.parse(newStr);
+        if (newStr != null) _numOfPunches = int.tryParse(newStr) ?? 0;
       },
       validator: FormBuilderValidators.compose([
         FormBuilderValidators.required(ctx),
@@ -98,7 +98,7 @@ class _NewPunchcardFormState extends State<NewPunchcardForm> {
       decoration: InputDecoration(
           labelText: 'תוקף כרטיסיה (בחודשים)', labelStyle: labelStyle),
       onChanged: (newStr) {
-        if (newStr != null) _monthsToKeepAlive = int.parse(newStr);
+        if (newStr != null) _monthsToKeepAlive = int.tryParse(newStr) ?? 0;
       },
       validator: FormBuilderValidators.compose([
         FormBuilderValidators.required(ctx),
@@ -107,7 +107,7 @@ class _NewPunchcardFormState extends State<NewPunchcardForm> {
     );
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     _setIsLoading(true);
     _formKey.currentState?.save();
     final didValidate = _formKey.currentState?.validate();
@@ -121,6 +121,11 @@ class _NewPunchcardFormState extends State<NewPunchcardForm> {
         punchesRemaining: _numOfPunches,
       );
       widget.userToAddTo.addPunchCard(newPunchcard, widget.database);
+      await showOkAlertDialog(
+          context: context,
+          title: 'הצלחה',
+          message: 'הכרטיסיה נוצרה בהצלחה',
+          okLabel: 'אישור');
       Navigator.of(context).pop();
     } else {
       debugPrint("validation failed");

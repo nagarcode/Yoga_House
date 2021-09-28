@@ -1,3 +1,5 @@
+import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:flutter/material.dart';
 import 'package:yoga_house/Canellation/cancellation.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Services/database.dart';
@@ -14,6 +16,16 @@ class UserInfo {
   final bool approvedTermsOfService;
   final bool submittedHealthAssurance;
   final Punchcard? punchcard;
+
+  bool get hasPunchcard => punchcard != null;
+  bool get hasPunchesLeft {
+    final pnchcrd = punchcard;
+    if (pnchcrd == null) {
+      return false;
+    } else {
+      return pnchcrd.hasPunchesLeft;
+    }
+  }
 
   static UserInfo initEmptyUserInfo(String uid) {
     return UserInfo(
@@ -112,7 +124,7 @@ class UserInfo {
           submittedHealthAssurance ?? this.submittedHealthAssurance,
       approvedTermsOfService:
           approvedTermsOfService ?? this.approvedTermsOfService,
-      punchcard: punchCard ?? this.punchcard,
+      punchcard: punchCard ?? punchcard,
     );
   }
 
@@ -137,8 +149,49 @@ class UserInfo {
     } else {
       final aggregatedPunchcard = currentPunchcard.aggregate(punchcardToAdd);
       await database.updatePunchCardTransaction(
-          uid, punchcardToAdd, aggregatedPunchcard);
+        uid: uid,
+        aggregatedPunchcard: aggregatedPunchcard,
+        currentPunchcard: currentPunchcard,
+      );
     }
+  }
+
+  Future<void> incrementPunchcard(
+      FirestoreDatabase database, BuildContext context) async {
+    final didSucceed = await database.incrementPunchcard(this);
+    final title = didSucceed ? 'הצלחה' : 'כישלון';
+    final msg = didSucceed
+        ? 'ניקוב נוסף בהצלחה'
+        : 'לא ניתן היה להשלים את הפעולה. אנא נסה שוב';
+    showOkAlertDialog(
+        context: context, title: title, message: msg, okLabel: 'אישור');
+  }
+
+  Future<void> decrementPunchcard(
+      FirestoreDatabase database, BuildContext context) async {
+    final didSucceed = await database.decrementPunchcard(this);
+    final title = didSucceed ? 'הצלחה' : 'כישלון';
+    final msg = didSucceed
+        ? 'ניקוב ירד בהצלחה'
+        : 'לא ניתן היה להשלים את הפעולה. אנא נסה שוב';
+    showOkAlertDialog(
+        context: context, title: title, message: msg, okLabel: 'אישור');
+  }
+
+  UserInfo copyWithDecrementedPunch() {
+    final pnchcrd = punchcard;
+    if (pnchcrd == null) {
+      throw Exception('Punchcard cant be decremented if null');
+    }
+    return copyWith(punchCard: pnchcrd.copyWithDecrementPunches());
+  }
+
+  UserInfo copyWithIncrementedPunch() {
+    final pnchcrd = punchcard;
+    if (pnchcrd == null) {
+      throw Exception('Punchcard cant be incremented if null');
+    }
+    return copyWith(punchCard: pnchcrd.copyWithIncrementPunches());
   }
 
   // bool isRegisteredToPractice(String practiceID) {

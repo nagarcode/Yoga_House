@@ -4,6 +4,7 @@ class Punchcard {
   final int punchesPurchased;
   final int punchesRemaining;
   int get punchesUsed => punchesPurchased - punchesRemaining;
+  bool get hasPunchesLeft => punchesRemaining > 0;
 
   Punchcard({
     required this.purchasedOn,
@@ -44,5 +45,14 @@ class Punchcard {
   Punchcard aggregate(Punchcard newPunchCard) {
     return newPunchCard.copyWith(
         punchesRemaining: punchesRemaining + newPunchCard.punchesRemaining);
+  }
+
+  Punchcard copyWithDecrementPunches() {
+    if (punchesRemaining <= 0) throw Exception('punches already 0');
+    return copyWith(punchesRemaining: punchesRemaining - 1);
+  }
+
+  Punchcard copyWithIncrementPunches() {
+    return copyWith(punchesRemaining: punchesRemaining + 1);
   }
 }

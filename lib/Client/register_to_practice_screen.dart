@@ -4,21 +4,23 @@ import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Practice/practice_card.dart';
+import 'package:yoga_house/Services/app_info.dart';
 import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:intl/intl.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
 
 class RegisterToPracticeScreen extends StatefulWidget {
-  const RegisterToPracticeScreen({
-    Key? key,
-  }) : super(key: key);
+  final bool managerView;
+  const RegisterToPracticeScreen({Key? key, required this.managerView})
+      : super(key: key);
 
-  static Future<void> pushToTabBar(BuildContext context) async {
+  static Future<void> pushToTabBar(
+      BuildContext context, bool managerView) async {
     await pushNewScreen(
       context,
       // ignore: prefer_const_constructors
-      screen: RegisterToPracticeScreen(),
+      screen: RegisterToPracticeScreen(managerView: managerView),
     );
   }
 
@@ -55,6 +57,7 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
   }
 
   Widget _itemBuilder(BuildContext listContext, Practice practice) {
+    final appInfo = context.read<AppInfo>();
     final userInfo = context.read<UserInfo>();
     final database = context.read<FirestoreDatabase>();
     return PracticeCard(
@@ -63,8 +66,8 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
           practice.registerToPracticeCallback(userInfo, database, context),
       waitingListCallback: () {}, //TODO change
       isRegistered: practice.isUserRegistered(userInfo.uid),
-      unregisterCallback:
-          practice.unregisterFromPracticeCallback(userInfo, database, context),
+      unregisterCallback: practice.unregisterFromPracticeCallback(
+          userInfo, database, context, appInfo),
     );
   }
 

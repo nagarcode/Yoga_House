@@ -144,41 +144,85 @@ class FirestoreDatabase {
   }
 
   Future<bool> registerUserToPracticeTransaction(
-      UserInfo userToAdd, String practiceID) async {
+      UserInfo userToAddObj, String practiceID) async {
+    final userInfoRef = _instance.doc(APIPath.userInfo(userToAddObj.uid));
+    final practiceRef = _instance.doc(APIPath.futurePractice(practiceID));
     return await _instance.runTransaction<bool>((transaction) async {
-      final practiceRef = _instance.doc(APIPath.futurePractice(practiceID));
       final practiceSnapshot = await transaction.get(practiceRef);
+      final userToAddRaw = await transaction.get(userInfoRef);
+      final userToAddData = userToAddRaw.data();
+      if (userToAddData == null) return false;
+      final userToAdd = UserInfo.fromMap(userToAddData);
+      final currentPunchcard = userToAdd.punchcard;
+      if (currentPunchcard == null || !currentPunchcard.hasPunchesLeft) {
+        return false;
+      }
       final data = practiceSnapshot.data();
       if (data == null) return false;
       final practicePre = Practice.fromMap(data);
       if (practicePre.isFull() || practicePre.isUserRegistered(userToAdd.uid)) {
         return false;
       }
-      // final newNumOfRegistered = practicePre.numOfRegisteredParticipants + 1;
       practicePre.registeredParticipants.add(userToAdd);
       final practicePost = practicePre;
       transaction.update(practiceRef, practicePost.toMap());
+      transaction.update(
+          userInfoRef, userToAdd.copyWithDecrementedPunch().toMap());
       return true;
     });
   }
 
-  Future<bool> unregisterFromPracticeTransaction(
-      UserInfo userToRemove, String practiceID) async {
+  Future<bool> unregisterFromPracticeTransaction(UserInfo userToRemoveObj,
+      String practiceID, bool shouldRestorePunch) async {
+    final userInfoRef = _instance.doc(APIPath.userInfo(userToRemoveObj.uid));
+    final practiceRef = _instance.doc(APIPath.futurePractice(practiceID));
     return await _instance.runTransaction<bool>((transaction) async {
-      final practiceRef = _instance.doc(APIPath.futurePractice(practiceID));
+      final userInfoSnapshot = await transaction.get(userInfoRef);
       final practiceSnapshot = await transaction.get(practiceRef);
+      final userInfoData = userInfoSnapshot.data();
       final data = practiceSnapshot.data();
-      if (data == null) return false;
+      if (data == null || userInfoData == null) return false;
+      final userToRemove = UserInfo.fromMap(userInfoData);
       final practicePre = Practice.fromMap(data);
       if (practicePre.isEmpty() ||
           !practicePre.isUserRegistered(userToRemove.uid)) {
         return false;
       }
-      // final newNumOfRegistered = practicePre.numOfRegisteredParticipants - 1;
       practicePre.removeParticipant(userToRemove);
-
       final practicePost = practicePre;
       transaction.update(practiceRef, practicePost.toMap());
+      if (shouldRestorePunch) {
+        transaction.update(
+            userInfoRef, userToRemove.copyWithIncrementedPunch().toMap());
+      }
+      return true;
+    });
+  }
+
+  Future<bool> incrementPunchcard(UserInfo userInfoObj) async {
+    final userInfoRef = _instance.doc(APIPath.userInfo(userInfoObj.uid));
+    return await _instance.runTransaction((transaction) async {
+      final userInfoSnapshot = await transaction.get(userInfoRef);
+      final userInfoData = userInfoSnapshot.data();
+      if (userInfoData == null) return false;
+      final userInfo = UserInfo.fromMap(userInfoData);
+      if (!userInfo.hasPunchcard) return false;
+      transaction.update(
+          userInfoRef, userInfo.copyWithIncrementedPunch().toMap());
+      return true;
+    });
+  }
+
+  Future<bool> decrementPunchcard(UserInfo userInfoObj) async {
+    final userInfoRef = _instance.doc(APIPath.userInfo(userInfoObj.uid));
+    return await _instance.runTransaction((transaction) async {
+      final userInfoSnapshot = await transaction.get(userInfoRef);
+      final userInfoData = userInfoSnapshot.data();
+      if (userInfoData == null) return false;
+      final userInfo = UserInfo.fromMap(userInfoData);
+      if (!userInfo.hasPunchcard || !userInfo.hasPunchesLeft) return false;
+      transaction.update(
+          userInfoRef, userInfo.copyWithDecrementedPunch().toMap());
       return true;
     });
   }
@@ -192,11 +236,11 @@ class FirestoreDatabase {
   Future<void> addNewPunchCardTransaction(
       String uid, Punchcard punchCardToAdd) async {
     final userInfoRef = _instance.doc(APIPath.userInfo(uid));
-    final punchCardInHistoryRef = _instance
-        .doc(APIPath.userPunchCardFromHistory(uid, punchCardToAdd.purchasedOn));
+    // final punchCardInHistoryRef = _instance
+    //     .doc(APIPath.userPunchCardFromHistory(uid, punchCardToAdd.purchasedOn));
     return await _instance.runTransaction((transaction) async {
       transaction.update(userInfoRef, {'punchcard': punchCardToAdd.toMap()});
-      transaction.set(punchCardInHistoryRef, punchCardToAdd.toMap());
+      // transaction.set(punchCardInHistoryRef, punchCardToAdd.toMap());
     });
   }
 
@@ -216,15 +260,18 @@ class FirestoreDatabase {
   //   });
   // }
 
-  Future<void> updatePunchCardTransaction(String uid, Punchcard punchCardToAdd,
-      Punchcard aggregatedPunchcard) async {
+  Future<void> updatePunchCardTransaction({
+    required String uid,
+    required Punchcard aggregatedPunchcard,
+    required Punchcard currentPunchcard,
+  }) async {
     final userInfoRef = _instance.doc(APIPath.userInfo(uid));
-    final punchCardToAddRefInHistory = _instance
-        .doc(APIPath.userPunchCardFromHistory(uid, punchCardToAdd.purchasedOn));
+    final currenrtPunchcardRefInHistory = _instance.doc(
+        APIPath.userPunchCardFromHistory(uid, currentPunchcard.purchasedOn));
     return await _instance.runTransaction((transaction) async {
+      transaction.set(currenrtPunchcardRefInHistory, currentPunchcard.toMap());
       transaction
           .update(userInfoRef, {'punchcard': aggregatedPunchcard.toMap()});
-      transaction.set(punchCardToAddRefInHistory, punchCardToAdd.toMap());
     });
   }
 }

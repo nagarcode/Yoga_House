@@ -27,10 +27,10 @@ class APIPath {
   static String pastPractice(String id) => 'Past_Practices/$id';
 
   static String userPunchCardHistoryCollection(String uid) =>
-      'users/$uid/PunchCard_History';
+      'users/$uid/Punchcard_History';
 
   static String userPunchCardFromHistory(String uid, DateTime purchasedOn) =>
-      'users/$uid/PunchCard_History/${Utils.idFromPastTime(purchasedOn)}';
+      'users/$uid/Punchcard_History/${Utils.idFromPastTime(purchasedOn)}';
 
   //Assets:
   static String logo() => 'assets/images/cropped_logo.png';

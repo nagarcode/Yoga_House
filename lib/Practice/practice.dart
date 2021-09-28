@@ -137,6 +137,14 @@ class Practice {
         if (userInfo.isManager) {
           throw UnimplementedError('needs implementation'); //TODO: handle
         } else {
+          if (!userInfo.hasPunchcard) {
+            await _showNoPunchcardDialog(screenContext);
+            return;
+          }
+          if (!userInfo.hasPunchesLeft) {
+            await _showNoPunchesLeftDialog(screenContext);
+            return;
+          }
           final didRequestRegister =
               await _promtRegistrationConfirmation(screenContext);
           if (didRequestRegister) {
@@ -153,7 +161,7 @@ class Practice {
   }
 
   Function unregisterFromPracticeCallback(UserInfo userInfo,
-      FirestoreDatabase database, BuildContext screenContext) {
+      FirestoreDatabase database, BuildContext screenContext, AppInfo appInfo) {
     return () async {
       try {
         if (userInfo.isManager) {
@@ -162,7 +170,9 @@ class Practice {
           final didRequestUnregister =
               await _promtUnregisterConfirmation(screenContext);
           if (didRequestUnregister) {
-            database.unregisterFromPracticeTransaction(userInfo, id);
+            bool shouldRestorePunch = isEnoughTimeLeftToCancel(appInfo);
+            database.unregisterFromPracticeTransaction(
+                userInfo, id, shouldRestorePunch);
           }
         }
       } on Exception catch (_) {
@@ -233,5 +243,21 @@ class Practice {
   void removeParticipant(UserInfo userToRemove) {
     registeredParticipants.removeWhere(
         (registeredUser) => registeredUser.uid == userToRemove.uid);
+  }
+
+  _showNoPunchcardDialog(BuildContext screenContext) async {
+    await showOkAlertDialog(
+        context: screenContext,
+        title: 'אין כרטיסיה',
+        message: 'יש לרכוש כרטיסיה על מנת להירשם לתרגולים. לרכישה אנא צור קשר.',
+        okLabel: 'אישור');
+  }
+
+  _showNoPunchesLeftDialog(BuildContext screenContext) async {
+    await showOkAlertDialog(
+        context: screenContext,
+        title: 'אין ניקובים',
+        message: 'לא נותרו ניקובים בכרטיסיה שלך. לרכישה אנא צור קשר.',
+        okLabel: 'אישור');
   }
 }

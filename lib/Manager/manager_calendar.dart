@@ -315,7 +315,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       decoration: InputDecoration(
           labelText: 'מס׳ מתאמנים מקסימלי', labelStyle: labelStyle),
       onChanged: (newStr) {
-        if (newStr != null) _maxParticipants = int.parse(newStr);
+        if (newStr != null) _maxParticipants = int.tryParse(newStr) ?? 0;
       },
       validator: FormBuilderValidators.compose([
         FormBuilderValidators.required(ctx),

@@ -183,7 +183,7 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
       decoration: InputDecoration(
           labelText: 'מס׳ משתתפים מקסימלי', labelStyle: labelStyle),
       onChanged: (newStr) {
-        if (newStr != null) _maxParticipants = int.parse(newStr);
+        if (newStr != null) _maxParticipants = int.tryParse(newStr) ?? 0;
       },
       validator: FormBuilderValidators.compose([
         FormBuilderValidators.required(ctx),

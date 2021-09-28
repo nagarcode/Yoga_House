@@ -43,7 +43,13 @@ class _ManagementScreenState extends State<ManagementScreen> {
       titleTextStyle: theme.textTheme.bodyText1,
       tiles: [
         SettingsTile(
-          title: 'תבניות אימון',
+          title: 'רשימת שיעורים',
+          leading: Icon(Icons.run_circle_outlined, color: iconColor),
+          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
+          onPressed: (context) async {},
+        ),
+        SettingsTile(
+          title: 'תבניות שיעור',
           leading: Icon(Icons.run_circle_outlined, color: iconColor),
           titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onPressed: (context) async {
