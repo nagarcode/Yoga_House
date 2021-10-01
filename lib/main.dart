@@ -63,6 +63,7 @@ class MyApp extends StatelessWidget {
 
   ThemeData _theme(BuildContext context) {
     return ThemeData(
+      splashFactory: NoSplash.splashFactory,
       // textButtonTheme: _textButtonTheme(),
       colorScheme: _colorScheme(),
       textTheme: _textTheme(),

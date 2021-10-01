@@ -31,18 +31,23 @@ class RegisterToPracticeScreen extends StatefulWidget {
 
 class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
   Widget get _noPracticesWidget =>
-      const Center(child: Text('אין אימונים זמינים'));
+      const Center(child: Text('אין תרגולים זמינים'));
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Utils.appBarTitle(context, 'רישום לתרגול')),
+      appBar: AppBar(
+          title: Utils.appBarTitle(context,
+              widget.managerView ? 'תרגולים עתידיים' : 'רישום לתרגול')),
       body: _practiceCardsListView(),
     );
   }
 
   Widget _practiceCardsListView() {
-    final futurePractices = context.watch<List<Practice>>();
+    final allPractices = context.watch<List<Practice>>();
+    final futurePractices = allPractices
+        .where((practice) => practice.startTime.isAfter(DateTime.now()))
+        .toList();
     if (futurePractices.isEmpty) return _noPracticesWidget;
     return GroupedListView<Practice, String>(
       shrinkWrap: true,
@@ -61,6 +66,9 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
     final userInfo = context.read<UserInfo>();
     final database = context.read<FirestoreDatabase>();
     return PracticeCard(
+      isHistory: false,
+      database: database,
+      managerView: widget.managerView,
       data: practice,
       registerCallback:
           practice.registerToPracticeCallback(userInfo, database, context),

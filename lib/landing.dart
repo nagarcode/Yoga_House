@@ -8,6 +8,7 @@ import 'Practice/practice.dart';
 import 'Services/app_info.dart';
 import 'Services/auth.dart';
 import 'Services/database.dart';
+import 'Services/notifications.dart';
 import 'Services/shared_prefs.dart';
 import 'Services/splash_screen.dart';
 import 'Services/utils_file.dart';
@@ -35,7 +36,6 @@ class LandingPage extends StatelessWidget {
           } else {
             //user != null
             final database = FirestoreDatabase(currentUserUID: user.uid);
-            //TODO insert user's registered practices streambuilder here
             return StreamBuilder<UserInfo>(
                 stream: database.userInfoStream(user.uid),
                 builder: (context, userInfoSnapshot) {
@@ -47,13 +47,17 @@ class LandingPage extends StatelessWidget {
                   if (userInfo == null) {
                     return const SplashScreen();
                   }
-                  //TODO move past practices to Past_Practices collection(in the DB)
                   return MultiProvider(
                     providers: [
                       Provider<AppUser>.value(value: user),
                       Provider<UserInfo>.value(value: userInfo),
                       Provider<FirestoreDatabase>.value(value: database),
                       Provider<SharedPrefs>.value(value: sharedPrefs),
+                      Provider<NotificationService>(
+                        create: (_) {
+                          return _createNotificationService(database);
+                        },
+                      ),
                     ],
                     child: !_hasDetails(userInfo)
                         ? UserDetailsPromtScreen(auth: auth, database: database)
@@ -68,29 +72,49 @@ class LandingPage extends StatelessWidget {
     );
   }
 
+  NotificationService _createNotificationService(FirestoreDatabase database) {
+    final notifications = NotificationService(database);
+    notifications.init();
+    return notifications;
+  }
+
   bool _isManager(UserInfo userInfo) {
     return userInfo.isManager;
   }
 
   Widget _managerSubTree(FirestoreDatabase database) {
-    return StreamBuilder<AppInfo>(
-      stream: database.appInfoStream(),
-      builder: (context, appInfoSnapshot) {
-        if (Utils.connectionStateInvalid(appInfoSnapshot)) {
-          return const SplashScreen();
-        }
-        final appInfo = appInfoSnapshot.data;
-        if (appInfo == null) {
-          return const SplashScreen();
-        }
-        return Provider<AppInfo>.value(
-            value: appInfo,
-            child: appInfo.isManagerTerminated
-                ? const InfoScreen(PageType.managerTerminated)
-                // ignore: prefer_const_constructors
-                : ManagerHome());
-      },
-    );
+    return StreamBuilder<List<Practice>>(
+        stream: database.futurePracticesStream(),
+        builder: (context, futurePracticesSnapshot) {
+          if (Utils.connectionStateInvalid(futurePracticesSnapshot)) {
+            return const SplashScreen();
+          }
+          final futurePractices = futurePracticesSnapshot.data;
+          if (futurePractices == null) {
+            return const SplashScreen();
+          }
+          return StreamBuilder<AppInfo>(
+            stream: database.appInfoStream(),
+            builder: (context, appInfoSnapshot) {
+              if (Utils.connectionStateInvalid(appInfoSnapshot)) {
+                return const SplashScreen();
+              }
+              final appInfo = appInfoSnapshot.data;
+              if (appInfo == null) {
+                return const SplashScreen();
+              }
+              return MultiProvider(
+                  providers: [
+                    Provider<AppInfo>.value(value: appInfo),
+                    Provider<List<Practice>>.value(value: futurePractices),
+                  ],
+                  child: appInfo.isManagerTerminated
+                      ? const InfoScreen(PageType.managerTerminated)
+                      // ignore: prefer_const_constructors
+                      : ManagerHome());
+            },
+          );
+        });
   }
 
   Widget clientSubTree(FirestoreDatabase database) {

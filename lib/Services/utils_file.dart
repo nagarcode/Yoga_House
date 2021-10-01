@@ -130,4 +130,13 @@ class Utils {
 
   static String hourFromDateTime(DateTime dateTime) =>
       DateFormat.Hm().format(dateTime);
+
+  static String hebrewMonthYear(DateTime date) =>
+      DateFormat.yMMMM('he_IL').format(date);
+
+  static String numericMonthYear(DateTime date) =>
+      DateFormat.yMMM().format(date);
+
+  static String hebNumericMonthYear(DateTime date) =>
+      DateFormat.yMMM('he_IL').format(date);
 }

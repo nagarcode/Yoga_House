@@ -1,6 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:yoga_house/Client/register_to_practice_screen.dart';
+import 'package:yoga_house/Manager/Management_Screens/homepage_message_screen.dart';
+import 'package:yoga_house/Manager/Management_Screens/notifications_settings.dart';
+import 'package:yoga_house/Manager/Management_Screens/practices_history_screen.dart';
 import 'package:yoga_house/Practice/practice_templates_screen.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 
@@ -43,10 +47,12 @@ class _ManagementScreenState extends State<ManagementScreen> {
       titleTextStyle: theme.textTheme.bodyText1,
       tiles: [
         SettingsTile(
-          title: 'רשימת שיעורים',
+          title: 'רשימת התרגולים',
           leading: Icon(Icons.run_circle_outlined, color: iconColor),
           titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
-          onPressed: (context) async {},
+          onPressed: (context) async {
+            await RegisterToPracticeScreen.pushToTabBar(context, true);
+          },
         ),
         SettingsTile(
           title: 'תבניות שיעור',
@@ -60,32 +66,40 @@ class _ManagementScreenState extends State<ManagementScreen> {
           title: 'שלח הודעה ללקוחות',
           titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           leading: Icon(Icons.edit_notifications_outlined, color: iconColor),
+          onPressed: (context) async {
+            await HomepageTextScreen.pushToTabBar(context, false);
+          },
         ),
         SettingsTile(
           title: 'הודעה בדף הבית',
           titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           leading: Icon(Icons.message_outlined, color: iconColor),
+          onPressed: (context) async {
+            await HomepageTextScreen.pushToTabBar(context, true);
+          },
         ),
         SettingsTile(
-          title: 'היסטוריית אימונים',
+          title: 'היסטוריית תרגולים',
           titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           leading: Icon(Icons.history_toggle_off_rounded, color: iconColor),
+          onPressed: (context) async {
+            await PracticesHistoryScreen.pushToTabBar(context);
+          },
         ),
-        SettingsTile(
-          title: 'סטטיסטיקה חודשית',
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
-          leading: Icon(Icons.data_saver_off_outlined, color: iconColor),
-        ),
+        // SettingsTile(
+        //   title: 'סטטיסטיקה חודשית',
+        //   titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
+        //   leading: Icon(Icons.data_saver_off_outlined, color: iconColor),
+        //   onPressed: (context) {}, //TODO next update!
+        // ),
         SettingsTile(
           title: 'התראות',
           titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           leading:
               Icon(Icons.notification_important_outlined, color: iconColor),
-        ),
-        SettingsTile(
-          title: 'מבט לדף לקוחות',
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
-          leading: Icon(Icons.person_outline_outlined, color: iconColor),
+          onPressed: (context) async {
+            await AdminNotificationsSettings.pushToTabBar(context);
+          },
         ),
       ],
     );

@@ -61,8 +61,9 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 8),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(40))),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+          ),
           child: const Text(
             'רישום לתרגול',
             style: TextStyle(fontSize: 20),
@@ -148,7 +149,11 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
 
   Widget _itemBuilder(BuildContext listContext, Practice practice) {
     final userInfo = context.read<UserInfo>();
+    final database = context.read<FirestoreDatabase>();
     return PracticeCard(
+      isHistory: false,
+      database: database,
+      managerView: false,
       data: practice,
       registerCallback: practice.registerToPracticeCallback(
           userInfo, widget.database, context),

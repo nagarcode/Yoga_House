@@ -7,6 +7,7 @@ import 'package:yoga_house/Client_Profile/client_profile_screen.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Services/app_info.dart';
 import 'package:yoga_house/Services/database.dart';
+import 'package:yoga_house/Services/notifications.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
 import 'client_main_screen.dart';
 
@@ -18,10 +19,10 @@ class ClientHome extends StatefulWidget {
 }
 
 class _ClientHomeState extends State<ClientHome> {
-  PersistentTabController? _controller;
+  final _controller = PersistentTabController(initialIndex: 1);
   @override
   void initState() {
-    _controller = PersistentTabController(initialIndex: 0);
+    _listenForNotifications();
     //TODO All inits go here: move practices to past, punchcard expiration date check, etc.
     super.initState();
   }
@@ -32,7 +33,7 @@ class _ClientHomeState extends State<ClientHome> {
   }
 
   List<Widget> _buildScreens() {
-    final futurePractices = context.read<List<Practice>>(); //TODO delete
+    final futurePractices = context.read<List<Practice>>();
     final database = context.read<FirestoreDatabase>();
     final appInfo = context.read<AppInfo>();
     final userInfo = context.read<UserInfo>();
@@ -95,5 +96,14 @@ class _ClientHomeState extends State<ClientHome> {
       ),
       navBarStyle: NavBarStyle.style6,
     );
+  }
+
+  void _listenForNotifications() {
+    final userInfo = context.read<UserInfo>();
+    final notificationService =
+        Provider.of<NotificationService>(context, listen: false);
+    notificationService.listenForMessages(context);
+    notificationService.subscribeToHomepageTextTopic();
+    notificationService.subscribeToUserNotifications(userInfo.uid);
   }
 }

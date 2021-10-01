@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:yoga_house/Services/app_info.dart';
 import 'package:yoga_house/Services/database.dart';
+import 'package:yoga_house/Services/notifications.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
+import 'package:yoga_house/common_widgets/card_selection_tile.dart';
 
 class Practice {
   final String id;
@@ -132,6 +134,8 @@ class Practice {
 
   Function registerToPracticeCallback(UserInfo userInfo,
       FirestoreDatabase database, BuildContext screenContext) {
+    final notifications = screenContext.read<NotificationService>();
+    final appInfo = screenContext.read<AppInfo>();
     return () async {
       try {
         if (userInfo.isManager) {
@@ -149,6 +153,7 @@ class Practice {
               await _promtRegistrationConfirmation(screenContext);
           if (didRequestRegister) {
             database.registerUserToPracticeTransaction(userInfo, id);
+            notifications.setPracticeLocalNotification(this, 24);
           }
         }
       } on Exception catch (_) {
@@ -260,4 +265,81 @@ class Practice {
         message: 'לא נותרו ניקובים בכרטיסיה שלך. לרכישה אנא צור קשר.',
         okLabel: 'אישור');
   }
+
+  Future<void> onTap(BuildContext context, FirestoreDatabase database) async {
+    await showDialog(
+        context: context,
+        builder: (context) => Utils.cardSelectionDialog(
+            context, _tapChoiceTiles(context, database)));
+  }
+
+  List<CardSelectionTile> _tapChoiceTiles(
+      BuildContext context, FirestoreDatabase database) {
+    final theme = Theme.of(context);
+    return [
+      CardSelectionTile(
+        context,
+        'מחק שיעור',
+        Icon(Icons.delete_outline_outlined, color: theme.colorScheme.primary),
+        (context) => _delete(context, database),
+      ),
+      // CardSelectionTile(
+      //   context,
+      //   'ערוך שם',
+      //   Icon(Icons.delete_outline_outlined, color: theme.colorScheme.primary),
+      //   (context) => _editPractice(context, database, PracticeEditOption.name),
+      // ),
+      // CardSelectionTile(
+      //   context,
+      //   'ערוך זמן',
+      //   Icon(Icons.delete_outline_outlined, color: theme.colorScheme.primary),
+      //   (context) => _editPractice(context, database, PracticeEditOption.time),
+      // ),
+      // CardSelectionTile(
+      //   context,
+      //   'ערוך מיקום',
+      //   Icon(Icons.delete_outline_outlined, color: theme.colorScheme.primary),
+      //   (context) =>
+      //       _editPractice(context, database, PracticeEditOption.location),
+      // ),
+    ];
+  }
+
+  _delete(BuildContext context, FirestoreDatabase database) async {
+    final shouldDelete = await _didRequestDelete(context);
+    if (shouldDelete) {
+      Navigator.of(context).pop();
+      await database.deletePractice(this);
+    }
+  }
+
+  Future<bool> _didRequestDelete(BuildContext context) async {
+    final didRequestDelete = await showOkCancelAlertDialog(
+        context: context,
+        isDestructiveAction: true,
+        title: 'ביטול אימון',
+        message:
+            'האם לבטל אימון זה? במידה ויש מתאמנים רשומים, הם יקבלו התראה על ביטול.');
+    return didRequestDelete == OkCancelResult.ok;
+  }
+
+  _editPractice(BuildContext context, FirestoreDatabase database,
+      PracticeEditOption editOption) {
+    final title = _getPromtTitle(editOption);
+  }
+
+  _getPromtTitle(PracticeEditOption editOption) {
+    switch (editOption) {
+      case PracticeEditOption.name:
+        return 'שם אימון';
+      case PracticeEditOption.location:
+        return 'מיקום אימון';
+      case PracticeEditOption.time:
+        return 'זמן תחילת אימון';
+      default:
+        return 'שם אימון';
+    }
+  }
 }
+
+enum PracticeEditOption { name, time, location }

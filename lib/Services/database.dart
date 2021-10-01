@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Practice/practice_template.dart';
 import 'package:yoga_house/Services/shared_prefs.dart';
+import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
 import 'package:yoga_house/common_widgets/punch_card.dart';
 
 import 'api_path.dart';
 import 'app_info.dart';
+import 'notifications.dart';
 
 class FirestoreDatabase {
   final String currentUserUID;
@@ -20,6 +22,10 @@ class FirestoreDatabase {
 
   Future<void> setDocument(String path, Map<String, dynamic> data) async {
     return await _instance.doc(path).set(data);
+  }
+
+  Future<void> deleteDocument(String path) async {
+    return await _instance.doc(path).delete();
   }
 
   Stream<List<T>> _collectionStream<T>(
@@ -176,6 +182,7 @@ class FirestoreDatabase {
       String practiceID, bool shouldRestorePunch) async {
     final userInfoRef = _instance.doc(APIPath.userInfo(userToRemoveObj.uid));
     final practiceRef = _instance.doc(APIPath.futurePractice(practiceID));
+    final adminNotificationRef = _instance.doc(APIPath.newAdminNotification());
     return await _instance.runTransaction<bool>((transaction) async {
       final userInfoSnapshot = await transaction.get(userInfoRef);
       final practiceSnapshot = await transaction.get(practiceRef);
@@ -195,6 +202,8 @@ class FirestoreDatabase {
         transaction.update(
             userInfoRef, userToRemove.copyWithIncrementedPunch().toMap());
       }
+      _sendClientCancelledAdminNotificationTransaction(
+          userToRemove, practicePre, transaction);
       return true;
     });
   }
@@ -273,5 +282,156 @@ class FirestoreDatabase {
       transaction
           .update(userInfoRef, {'punchcard': aggregatedPunchcard.toMap()});
     });
+  }
+
+  Future<bool> organizePracticesTransaction(List<Practice> allPractices) async {
+    final preMoveRefs = pastPracticesRefs(allPractices);
+    if (preMoveRefs.isEmpty) return true;
+    final postMovePracticesToRefs = _postMovePracticesToRefs(allPractices);
+    return await _instance.runTransaction<bool>((transaction) async {
+      for (var practice in postMovePracticesToRefs.keys) {
+        // transaction.set(postMovePracticesToRefs[practice]!, practice.toMap());
+        _transactionAddFieldToSingleDoc(
+            reference: postMovePracticesToRefs[practice]!,
+            fieldId: practice.id,
+            field: practice.toMap(),
+            transaction: transaction);
+      }
+      for (var ref in preMoveRefs) {
+        transaction.delete(ref);
+      }
+      return true;
+    });
+  }
+
+  List<DocumentReference> pastPracticesRefs(List<Practice> allPractices) {
+    final pastPractices = _pastPractices(allPractices);
+    final preMoveRefs = <DocumentReference>[];
+    for (var pastPractice in pastPractices) {
+      final ref = _instance.doc(APIPath.futurePractice(pastPractice.id));
+      preMoveRefs.add(ref);
+    }
+    return preMoveRefs;
+  }
+
+  Map<Practice, DocumentReference> _postMovePracticesToRefs(
+      List<Practice> allPractices) {
+    final pastPractices = _pastPractices(allPractices);
+    final map = <Practice, DocumentReference>{};
+    for (var pastPractice in pastPractices) {
+      final path = APIPath.pastPracticeSingleDoc(pastPractice.startTime);
+      final ref = _instance.doc(path);
+      map[pastPractice] = ref;
+    }
+    return map;
+  }
+
+  List<Practice> _pastPractices(List<Practice> allPractices) {
+    final now = DateTime.now();
+    final pastPractices = allPractices
+        .where((practice) => practice.startTime.isBefore(now))
+        .toList();
+    return pastPractices;
+  }
+
+  deletePractice(Practice practice) async {
+    final isFuturePractice = practice.startTime.isAfter(DateTime.now());
+    final path = isFuturePractice
+        ? APIPath.futurePractice(practice.id)
+        : APIPath.pastPracticeSingleDoc(practice.startTime);
+    if (!isFuturePractice) {
+      await deleteDocument(path);
+    } else {
+      final registered = practice.registeredParticipants;
+      //TODO notify all registered users of deletion.
+      await deleteDocument(path); // TODO change to transaction
+    }
+  }
+
+  Future<List<Practice>> practicesHistoryFuture() async {
+    final collectionPath = APIPath.pastPracticesCollection();
+    final monthsRef = _instance.collection(collectionPath);
+    final monthsData = await monthsRef.get();
+    final docsSnapshot = monthsData.docs;
+    final allPractices = <Practice>[];
+    for (var snapshot in docsSnapshot) {
+      final data = snapshot.data();
+      for (var practice in data.values) {
+        allPractices.add(Practice.fromMap(practice));
+      }
+    }
+    return allPractices;
+  }
+
+  Future<void> addFieldToSingleDoc({
+    required String docPath,
+    required String fieldId,
+    required Map<String, dynamic> field,
+  }) async {
+    debugPrint('Adding field $fieldId to doc $docPath');
+    final reference = _instance.doc(docPath);
+    final SetOptions setOptions = SetOptions(merge: true);
+    return await reference.set({fieldId: field}, setOptions);
+  }
+
+  Future<void> _transactionAddFieldToSingleDoc(
+      {required DocumentReference reference,
+      required String fieldId,
+      required Map<String, dynamic> field,
+      required Transaction transaction}) async {
+    debugPrint('Adding field $fieldId to a singleDoc');
+    final SetOptions setOptions = SetOptions(merge: true);
+    transaction.set(reference, {fieldId: field}, setOptions);
+  }
+
+  Future<void> addNotificationToUser(NotificationData notification) async {
+    final reference =
+        _instance.doc(APIPath.newUserNotification(notification.targetUID));
+    await reference.set(notification.toMap());
+  }
+
+  addAdminNotification(String title, String msg) async {
+    final reference = _instance.doc(APIPath.newAdminNotification());
+    final notification = {'title': title, 'msg': msg};
+    await reference.set(notification);
+  }
+
+  _addAdminNotificationTransaction(
+      String title, String msg, Transaction transaction) async {
+    final reference = _instance.doc(APIPath.newAdminNotification());
+    final notification = {'title': title, 'msg': msg};
+    transaction.set(reference, notification);
+  }
+
+  _sendClientCancelledAdminNotificationTransaction(
+      UserInfo userInfo, Practice practice, Transaction transaction) {
+    final ref = _instance.doc(APIPath.newUserCancelledAdminNotification());
+    final username = userInfo.name;
+    final practiceName = practice.name;
+    final practiceDate =
+        Utils.numericDayMonthYearFromDateTime(practice.startTime);
+    const title = 'ביטול רישום לתרגול';
+    final msg =
+        '$username ביטל רישום ל$practiceName שיתקיים בתאריך $practiceDate';
+    transaction.set(ref, {'title': title, 'msg': msg});
+  }
+
+  _sendClientRegisteredAdminNotificationTransaction(
+      UserInfo userInfo, Practice practice, Transaction transaction) {
+    final ref = _instance.doc(APIPath.newUserRegisteredAdminNotification());
+    final username = userInfo.name;
+    final practiceName = practice.name;
+    final practiceDate =
+        Utils.numericDayMonthYearFromDateTime(practice.startTime);
+    const title = 'רישום לתרגול';
+    final msg = '$username נרשם ל$practiceName בתאריך $practiceDate';
+    transaction.set(ref, {'title': title, 'msg': msg});
+  }
+
+  setHomepageText(String text) {}
+
+  Future<void> addHomepageMessage(String msg) async {
+    final path = APIPath.newHomepageMessage();
+    return _instance.doc(path).set({'msg': msg});
   }
 }

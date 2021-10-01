@@ -71,6 +71,7 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
           ),
           SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
             child: SizedBox(
               height: deviceSize.height,
               width: deviceSize.width,
@@ -242,6 +243,7 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Future<void> _trySinginWithOTP(String text, String verificationId) async {
+    _setIsLoading(true);
     try {
       await widget.auth
           .signInWithOtp(userEnteredCode.value.text, verificationId);
@@ -251,6 +253,8 @@ class _SignInScreenState extends State<SignInScreen> {
           title: 'שגיאה',
           message: 'הקוד שהוכנס שגוי. נסה שוב.',
           okLabel: 'סגור');
+    } finally {
+      _setIsLoading(false);
     }
   }
 

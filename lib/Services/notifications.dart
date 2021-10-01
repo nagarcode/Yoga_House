@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Services/api_path.dart';
 import 'database.dart';
 
@@ -25,7 +26,7 @@ class NotificationService {
   static showNotification(RemoteMessage message) {
     const androidDetails = AndroidNotificationDetails(
         'yoga_house_channel', 'yoga_house_channel', 'yoga_house_channel',
-        icon: '@mipmap/launcher_icon', //TODO change/add
+        icon: '@mipmap/launcher_icon',
         importance: Importance.max,
         priority: Priority.high);
     const ios = IOSNotificationDetails();
@@ -43,8 +44,8 @@ class NotificationService {
     _fcm.setForegroundNotificationPresentationOptions(
         alert: true, badge: true, sound: true);
     final plugin = FlutterLocalNotificationsPlugin();
-    const androidSettings = AndroidInitializationSettings(
-        '@mipmap/launcher_icon'); //TODO change/add
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/launcher_icon');
     const iosSettings = IOSInitializationSettings();
     const initSettings =
         InitializationSettings(android: androidSettings, iOS: iosSettings);
@@ -58,7 +59,7 @@ class NotificationService {
   listenForMessages(BuildContext context) {
     const androidDetails = AndroidNotificationDetails(
         'yoga_house_channel', 'yoga_house_channel', 'yoga_house_channel',
-        icon: '@mipmap/launcher_icon', //TODO change/add
+        icon: '@mipmap/launcher_icon',
         importance: Importance.max,
         priority: Priority.high);
     final ios = IOSNotificationDetails();
@@ -95,19 +96,19 @@ class NotificationService {
   }
 
   Future<void> sendUserNotification(NotificationData notification) async {
-    // await database.addNotificationToUser(notification); //TODO implement
+    await database.addNotificationToUser(notification);
   }
 
   sendAdminNotification(String title, String msg) async {
-    // await database.addAdminNotification(title, msg); //TODO implement
+    await database.addAdminNotification(title, msg);
   }
 
-  void subscribeToTopic(String topic) {
+  void _subscribeToTopic(String topic) {
     debugPrint('Subscribing to $topic');
     _fcm.subscribeToTopic(topic);
   }
 
-  void unsubscribeFromTopic(String topic) {
+  void _unsubscribeFromTopic(String topic) {
     debugPrint('Unsubscribing from $topic');
     _fcm.unsubscribeFromTopic(topic);
   }
@@ -132,23 +133,67 @@ class NotificationService {
     return withHunnid + toConcat;
   }
 
-  // cancelNotification(CustomAppointment appointment) {
-  //   final id = idFromStartTime(appointment.startTime);
-  //   _plugin.cancel(id);
-  // }
+  Future setPracticeLocalNotification(
+      Practice practice, int hoursBeforeToAlert) async {
+    if (!practice.startTime
+        .isAfter(DateTime.now().add(Duration(hours: hoursBeforeToAlert)))) {
+      return;
+    } //dont alert if appointment time is close
+    const android = AndroidNotificationDetails(
+        'yoga_house_channel', 'yoga_house_channel', 'yoga_house_channel',
+        icon: '@mipmap/launcher_icon',
+        importance: Importance.max,
+        priority: Priority.high);
+    const ios = IOSNotificationDetails();
+    const platform = NotificationDetails(android: android, iOS: ios);
+    final date = tz.TZDateTime.from(practice.startTime, tz.local)
+        .subtract(Duration(hours: hoursBeforeToAlert));
+    final title = practice.name;
+    final hour = DateFormat.Hm().format(practice.startTime);
+    final body = 'תזכורת ל${practice.name} מחר ב$hour, נתראה :)';
+    await _plugin.zonedSchedule(
+        idFromStartTime(practice.startTime), title, body, date, platform,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        androidAllowWhileIdle: true);
+  }
+
+  cancelPracticeLocalNotification(Practice practice) {
+    final id = idFromStartTime(practice.startTime);
+    _plugin.cancel(id);
+  }
 
   void initUserNotifications(String uid) {
-    // subscribeToTopic(APIPath.homepageMessagesTopic());
-    // subscribeToTopic(APIPath.userNotificationsTopic(uid));
-    //TODO implement
+    subscribeToHomepageTextTopic();
+    subscribeToUserNotificationsTopic(uid);
   }
 
   void subscribeToHomepageTextTopic() {
-    subscribeToTopic(APIPath.homepageTextTopic());
+    _subscribeToTopic(APIPath.homepageTextTopic());
   }
 
   void subscribeToUserNotificationsTopic(String uid) {
-    subscribeToTopic(APIPath.userNotificationsTopic(uid));
+    _subscribeToTopic(APIPath.userNotificationsTopic(uid));
+  }
+
+  void subscribeToAdminNotificationsTopic() {
+    _subscribeToTopic(APIPath.adminNotificationsTopic());
+  }
+
+  void adminRegisterToUserRegisteredNotifications() {
+    _subscribeToTopic(APIPath.adminTopicUserRegistered());
+  }
+
+  void adminUnregisterFromUserRegisteredNotifications() {
+    _unsubscribeFromTopic(APIPath.adminTopicUserRegistered());
+  }
+
+  void adminRegisterToUserCancelledNotifications() {
+    _subscribeToTopic(APIPath.adminTopicUserRegistered());
+  }
+
+  void adminUnregisterFromUserCancelledNotifications() {
+    _unsubscribeFromTopic(APIPath.adminTopicUserRegistered());
   }
 }
 

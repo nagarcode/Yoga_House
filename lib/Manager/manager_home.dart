@@ -5,10 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:yoga_house/Manager/clients_screen.dart';
 import 'package:yoga_house/Manager/management_screen.dart';
 import 'package:yoga_house/Manager/manager_main_screen.dart';
+import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Services/database.dart';
+import 'package:yoga_house/Services/notifications.dart';
 
 class ManagerHome extends StatefulWidget {
-  //TODO add notification stuff to initstate
   const ManagerHome({Key? key}) : super(key: key);
 
   @override
@@ -19,7 +20,10 @@ class _ManagerHomeState extends State<ManagerHome> {
   PersistentTabController? _controller;
   @override
   void initState() {
-    _controller = PersistentTabController(initialIndex: 0);
+    //TODO delete practices older than 1 year from history.
+    _listenForNotifications();
+    _organizePracticesCollection();
+    _controller = PersistentTabController(initialIndex: 2);
     super.initState();
   }
 
@@ -32,7 +36,9 @@ class _ManagerHomeState extends State<ManagerHome> {
     final database = context.read<FirestoreDatabase>();
     return [
       ClientsScreen(database: database),
+      // ignore: prefer_const_constructors
       ManagerMainScreen(),
+      // ignore: prefer_const_constructors
       ManagementScreen(),
     ];
   }
@@ -83,5 +89,19 @@ class _ManagerHomeState extends State<ManagerHome> {
       ),
       navBarStyle: NavBarStyle.style6,
     );
+  }
+
+  void _organizePracticesCollection() {
+    final database = context.read<FirestoreDatabase>();
+    final allPractices = context.read<List<Practice>>();
+    database.organizePracticesTransaction(allPractices);
+  }
+
+  void _listenForNotifications() {
+    final notificationService =
+        Provider.of<NotificationService>(context, listen: false);
+    notificationService.listenForMessages(context);
+    notificationService.subscribeToAdminNotificationsTopic();
+    notificationService.subscribeToHomepageTextTopic();
   }
 }

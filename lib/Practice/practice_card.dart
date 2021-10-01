@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 
 import 'practice.dart';
 
-class PracticeCard extends StatelessWidget {
+class PracticeCard extends StatefulWidget {
   final Practice data;
   final bool isRegistered;
   final Function registerCallback;
   final Function unregisterCallback;
   final Function waitingListCallback;
+  final bool managerView;
+  final FirestoreDatabase database;
+  final bool isHistory;
 
   const PracticeCard({
     Key? key,
@@ -17,8 +21,17 @@ class PracticeCard extends StatelessWidget {
     required this.registerCallback,
     required this.unregisterCallback,
     required this.waitingListCallback,
+    required this.managerView,
+    required this.database,
+    required this.isHistory,
   }) : super(key: key);
 
+  @override
+  State<PracticeCard> createState() => _PracticeCardState();
+}
+
+class _PracticeCardState extends State<PracticeCard> {
+  bool expand = false;
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -32,33 +45,51 @@ class PracticeCard extends StatelessWidget {
 
   Widget _buildCard(BuildContext context) {
     final theme = Theme.of(context);
-    final hour = Utils.hourFromDateTime(data.startTime);
-    final durationMinutes = data.endTime.difference(data.startTime).inMinutes;
+    final hour = Utils.hourFromDateTime(widget.data.startTime);
+    final durationMinutes =
+        widget.data.endTime.difference(widget.data.startTime).inMinutes;
     final text =
-        '$durationMinutes דקות\nרמה: ${data.level}\nמיקום: ${data.location}';
+        '$durationMinutes דקות\nרמה: ${widget.data.level}\nמיקום: ${widget.data.location}';
 
     return ListTile(
-      leading: Icon(Icons.more_vert, color: theme.colorScheme.primary),
-      title: Text('$hour\n${data.name}'),
+      leading: IconButton(
+          icon: const Icon(Icons.more_vert),
+          color: theme.colorScheme.primary,
+          onPressed: widget.managerView && !widget.isHistory
+              ? () => widget.data.onTap(context, widget.database)
+              : null),
+      title: Text('$hour\n${widget.data.name}'),
       trailing: _trailing(theme),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [Text(text)],
+        children: [
+          Text(text),
+          if (expand) _usersListView(),
+        ],
       ),
+      onTap: widget.managerView ? _toggleExpand : null,
     );
   }
 
-  Widget _trailing(ThemeData theme) {
-    final isFull = data.maxParticipants == data.numOfRegisteredParticipants;
+  void _toggleExpand() {
+    setState(() {
+      expand = !expand;
+    });
+  }
 
-    final maxParticipants = data.maxParticipants;
-    final registered = data.numOfRegisteredParticipants;
+  Widget _trailing(ThemeData theme) {
+    final isFull =
+        widget.data.maxParticipants == widget.data.numOfRegisteredParticipants;
+
+    final maxParticipants = widget.data.maxParticipants;
+    final registered = widget.data.numOfRegisteredParticipants;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Expanded(
-          child: _registerOrWaitingListButton(theme, isFull),
-        ),
+        if (!widget.managerView)
+          Expanded(
+            child: _registerOrWaitingListButton(theme, isFull),
+          ),
         _registeredParticipants(registered, maxParticipants, theme, isFull),
       ],
     );
@@ -88,22 +119,48 @@ class PracticeCard extends StatelessWidget {
         theme.textTheme.subtitle1?.copyWith(color: theme.colorScheme.primary);
     return TextButton(
       onPressed: () {
-        if (isRegistered) {
-          unregisterCallback();
-        } else if (data.isFull()) {
-          waitingListCallback();
+        if (widget.isRegistered) {
+          widget.unregisterCallback();
+        } else if (widget.data.isFull()) {
+          widget.waitingListCallback();
         } else {
-          registerCallback();
+          widget.registerCallback();
         }
       },
       child: Text(
-        isRegistered
+        widget.isRegistered
             ? 'רשום. קליק לביטול רישום'
             : isFull
                 ? 'לרשימת המתנה'
                 : 'הירשם',
-        style: isRegistered ? registeredStyle : theme.textTheme.subtitle1,
+        style:
+            widget.isRegistered ? registeredStyle : theme.textTheme.subtitle1,
       ),
+    );
+  }
+
+  _usersListView() {
+    final theme = Theme.of(context);
+    final users = widget.data.registeredParticipants;
+    final rows = <Widget>[];
+    if (users.isEmpty) return const Text('טרם נרשמו מתאמנים לתרגול זה');
+    for (var user in users) {
+      final tile = ListTile(
+        dense: true,
+        title: Text('- ' + user.name,
+            style: theme.textTheme.subtitle1!.copyWith(fontSize: 15)),
+        onTap: () {},
+      );
+      rows.add(tile);
+    }
+    return Column(
+      children: [
+        const Text('רשומים:'),
+        ListView(
+          shrinkWrap: true,
+          children: rows,
+        ),
+      ],
     );
   }
 }

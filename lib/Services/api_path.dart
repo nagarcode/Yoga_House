@@ -1,6 +1,6 @@
 import 'package:yoga_house/Services/utils_file.dart';
 
-const serviceGiverID = 'Yuval Giat';
+const serviceGiverID = 'Yuval_Giat';
 
 class APIPath {
   static String userInfo(String uid) => 'users/$uid';
@@ -22,9 +22,13 @@ class APIPath {
 
   static String futurePractice(String id) => 'Practices/$id';
 
-  static String pastPractices() => 'Past_Practices';
+  static String pastPracticesCollection() =>
+      'Practices_History/$serviceGiverID/History';
 
-  static String pastPractice(String id) => 'Past_Practices/$id';
+  static String pastPracticeSingleDoc(DateTime date) {
+    final monthYear = Utils.numericMonthYear(date);
+    return 'Practices_History/$serviceGiverID/History/$monthYear';
+  }
 
   static String userPunchCardHistoryCollection(String uid) =>
       'users/$uid/Punchcard_History';
@@ -33,10 +37,34 @@ class APIPath {
       'users/$uid/Punchcard_History/${Utils.idFromPastTime(purchasedOn)}';
 
   //Assets:
+
   static String logo() => 'assets/images/cropped_logo.png';
 
+//Notifications:
+
+  static newUserNotification(String uid) =>
+      'User_Notifications/${DateTime.now()}';
+
+  static String newAdminNotification() =>
+      'Admin_Notifications/${DateTime.now()}';
+
+  static String newUserCancelledAdminNotification() =>
+      'Admin_Notifications/User_Cancelled_Practice/Notifications/${DateTime.now()}';
+
+  static String newUserRegisteredAdminNotification() =>
+      'Admin_Notifications/User_Registered_To_Practice/Notifications/${DateTime.now()}';
+
+  static String newHomepageMessage() =>
+      'Notifications/Homepage_Messages/Notifications/${DateTime.now()}';
+
   //FCM topics
-  static String homepageTextTopic() => '_homepage_text';
+  static String homepageTextTopic() => 'homepage_messages';
 
   static String userNotificationsTopic(String uid) => uid.toLowerCase();
+
+  static String adminNotificationsTopic() => 'admin_notifications';
+
+  static String adminTopicUserRegistered() => 'user_registered_to_practice';
+
+  static String adminTopicUserCancelled() => 'user_cancelled_practice';
 }

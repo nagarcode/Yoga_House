@@ -57,6 +57,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
     final theme = Theme.of(context);
     return SfCalendar(
       onTap: (tapDetails) => _tapped(tapDetails),
+      dataSource: _dataSource(),
       headerStyle: CalendarHeaderStyle(textStyle: theme.textTheme.bodyText2),
       todayHighlightColor: theme.colorScheme.primary,
       minDate: DateTime.now(),
@@ -218,15 +219,15 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       _shouldPromtDuration = false;
       await _createAndPersistPractice();
       Navigator.of(ctx).pop();
-      showOkAlertDialog(
-          context: widget.parentScaffoldKey.currentContext!,
-          message: 'השיעור נוסף בהצלחה',
-          title: 'הצלחה',
-          okLabel: 'אוקי');
+      // showOkAlertDialog(
+      //     context: widget.parentScaffoldKey.currentContext!,
+      //     message: 'השיעור נוסף בהצלחה',
+      //     title: 'הצלחה',
+      //     okLabel: 'אוקי');
     } else {
       debugPrint("validation failed");
+      _setIsLoading(false);
     }
-    _setIsLoading(false);
   }
 
   void _setIsLoading(bool value) {
@@ -365,7 +366,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
             height: 200,
             child: CupertinoDatePicker(
               use24hFormat: true,
-              initialDateTime: _startTime ?? DateTime.now(),
+              initialDateTime: _getStartTime(),
               onDateTimeChanged: (newTime) => _startTime = newTime,
               minimumDate: DateTime.now(),
             ),
@@ -471,6 +472,44 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       // 0
     );
     await widget.database.addPractice(practice);
+  }
+
+  DateTime _getStartTime() {
+    final startTime = _startTime;
+    if (startTime != null) {
+      if (DateTime.now().isAfter(startTime)) {
+        return DateTime.now().add(const Duration(seconds: 60));
+      } else {
+        return startTime;
+      }
+    } else {
+      return DateTime.now().add(Duration(seconds: 60));
+    }
+  }
+
+  _dataSource() {
+    final practices = context.read<List<Practice>>();
+    final theme = Theme.of(context);
+    final appointments = <Appointment>[];
+    for (var practice in practices) {
+      final registered = practice.numOfRegisteredParticipants;
+      final max = practice.maxParticipants;
+      final sub = '$registered/$max';
+      final apt = Appointment(
+        startTime: practice.startTime,
+        endTime: practice.endTime,
+        subject: '${practice.name} $sub',
+        color: theme.colorScheme.primary,
+      );
+      appointments.add(apt);
+    }
+    return DataSource(appointments);
+  }
+}
+
+class DataSource extends CalendarDataSource {
+  DataSource(List<Appointment> apts) {
+    appointments = apts;
   }
 }
 
