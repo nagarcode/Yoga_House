@@ -1,6 +1,7 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:yoga_house/Practice/edit_practice_form.dart';
 import 'package:yoga_house/Services/app_info.dart';
 import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/Services/notifications.dart';
@@ -203,8 +204,9 @@ class Practice {
     final secondLine =
         '-ברצוני להירשם לשיעור $name בתאריך $numericDate בשעה $hour.';
     final thirdLine =
-        '-חשוב! ביטול ללא ניקוב יתאפשר לכל היותר $minHours שעות לפני מועד השיעור. לא יתאפשר ביטול מלא לאחר מסגרת זמן זו.';
-    final registerText = '$firstLine\n$secondLine\n$thirdLine';
+        '-חשוב! ביטול ללא ניקוב יתאפשר לכל היותר $minHours שעות לפני מועד השיעור.';
+    const fourthLine = '- אנא להגיע 5 דקות לפני תחילת השיעור על מנת להתמקם.';
+    final registerText = '$firstLine\n$secondLine\n$thirdLine\n$fourthLine';
     final ans = await showOkCancelAlertDialog(
       context: screenContext,
       title: 'אישור רישום',
@@ -217,9 +219,9 @@ class Practice {
     final appInfo = screenContext.read<AppInfo>();
     final minHours = appInfo.minHoursToCancel;
     final notEnoughTimeText =
-        'חשוב לשים לב! שיעור זה יתקיים בעוד פחות מ$minHours שעות, כלומר לא ביקשת ביטול זה מספיק זמן מראש ולכן הביטול *לא* ילווה בהחזר ניקוב.';
+        'חשוב לשים לב! שיעור זה יתקיים בעוד פחות מ$minHours שעות ולכן במידה ותבטל את רישומך לא יוחזר לך הניקוב לכרטיסיה. האם לבטל בכל זאת?';
     const enoughTimeText =
-        'ביטול זה יזכה אותך בהחזר ניקוב :). האם לבטל את הרישום?';
+        'איזה כיף שביטלת את הרישום בזמן! ביטול זה הוא ללא חיוב. האם לבטל את הרישום?';
     final ans = await showOkCancelAlertDialog(
       isDestructiveAction: true,
       context: screenContext,
@@ -279,29 +281,23 @@ class Practice {
     return [
       CardSelectionTile(
         context,
-        'מחק שיעור',
+        'שלח הודעה לרשומים',
+        Icon(Icons.message_outlined, color: theme.colorScheme.primary),
+        (context) => _sendNotificationToRegisteredClients(context, database),
+      ),
+      CardSelectionTile(
+        context,
+        'ערוך פרטי שיעור',
+        Icon(Icons.mode_edit_outline_outlined,
+            color: theme.colorScheme.primary),
+        (context) => _editPractice(context, database),
+      ),
+      CardSelectionTile(
+        context,
+        'בטל תרגול',
         Icon(Icons.delete_outline_outlined, color: theme.colorScheme.primary),
         (context) => _delete(context, database),
       ),
-      // CardSelectionTile(
-      //   context,
-      //   'ערוך שם',
-      //   Icon(Icons.delete_outline_outlined, color: theme.colorScheme.primary),
-      //   (context) => _editPractice(context, database, PracticeEditOption.name),
-      // ),
-      // CardSelectionTile(
-      //   context,
-      //   'ערוך זמן',
-      //   Icon(Icons.delete_outline_outlined, color: theme.colorScheme.primary),
-      //   (context) => _editPractice(context, database, PracticeEditOption.time),
-      // ),
-      // CardSelectionTile(
-      //   context,
-      //   'ערוך מיקום',
-      //   Icon(Icons.delete_outline_outlined, color: theme.colorScheme.primary),
-      //   (context) =>
-      //       _editPractice(context, database, PracticeEditOption.location),
-      // ),
     ];
   }
 
@@ -317,27 +313,56 @@ class Practice {
     final didRequestDelete = await showOkCancelAlertDialog(
         context: context,
         isDestructiveAction: true,
-        title: 'ביטול אימון',
+        title: 'ביטול תרגול',
         message:
-            'האם לבטל אימון זה? במידה ויש מתאמנים רשומים, הם יקבלו התראה על ביטול.');
+            'האם לבטל תרגול זה? במידה ויש מתאמנים רשומים, מומלץ לשלוח להם תחילה הודעה על ביטול.');
     return didRequestDelete == OkCancelResult.ok;
   }
 
-  _editPractice(BuildContext context, FirestoreDatabase database,
-      PracticeEditOption editOption) {
-    final title = _getPromtTitle(editOption);
+  _editPractice(BuildContext context, FirestoreDatabase database) async {
+    // final title = _getPromtTitle(editOption);
+    Navigator.of(context).pop();
+    await EditPracticeForm.show(context, this, database);
   }
 
-  _getPromtTitle(PracticeEditOption editOption) {
-    switch (editOption) {
-      case PracticeEditOption.name:
-        return 'שם אימון';
-      case PracticeEditOption.location:
-        return 'מיקום אימון';
-      case PracticeEditOption.time:
-        return 'זמן תחילת אימון';
-      default:
-        return 'שם אימון';
+  // _getPromtTitle(PracticeEditOption editOption) {
+  //   switch (editOption) {
+  //     case PracticeEditOption.name:
+  //       return 'שם אימון';
+  //     case PracticeEditOption.location:
+  //       return 'מיקום אימון';
+  //     case PracticeEditOption.time:
+  //       return 'זמן תחילת אימון';
+  //     default:
+  //       return 'שם אימון';
+  //   }
+  // }
+
+  _sendNotificationToRegisteredClients(
+      BuildContext context, FirestoreDatabase database) async {
+    Navigator.of(context).pop();
+    final field = DialogTextField(
+        validator: _notificationTextValidator,
+        maxLines: 6,
+        hintText: 'הודעה לרשומים');
+    final textList =
+        await showTextInputDialog(context: context, textFields: [field]);
+    if (textList == null || textList.isEmpty) return;
+    final notificationText = textList.first;
+    const title = 'ביטול תרגול';
+    final sendTo = registeredParticipants;
+    await database.sendNotificationToUsers(sendTo, title, notificationText);
+    // await showOkAlertDialog(
+    //     context: context,
+    //     message: 'ההודעה נשלחה בהצלחה לכל הרשומים',
+    //     title: 'הצלחה');
+  }
+
+  String? _notificationTextValidator(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'חובה להזין טקסט';
+    } else {
+      return null;
     }
   }
 }

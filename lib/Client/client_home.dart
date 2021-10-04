@@ -23,7 +23,7 @@ class _ClientHomeState extends State<ClientHome> {
   @override
   void initState() {
     _listenForNotifications();
-    //TODO All inits go here: move practices to past, punchcard expiration date check, etc.
+    _organizePunchcard();
     super.initState();
   }
 
@@ -40,13 +40,13 @@ class _ClientHomeState extends State<ClientHome> {
     final practicesRegisteredTo =
         UserInfo.practicesUserIsRegisteredTo(futurePractices, userInfo);
     return [
-      ClientProfileScreen(
-          userInfo: userInfo, database: database, isManagerView: false),
       ClientMainScreen(
           database: database,
           appInfo: appInfo,
           practicesRegisteredTo: practicesRegisteredTo),
-      ClientSettingsScreen(),
+      ClientProfileScreen(
+          userInfo: userInfo, database: database, isManagerView: false),
+      // ClientSettingsScreen(),
     ];
   }
 
@@ -54,23 +54,23 @@ class _ClientHomeState extends State<ClientHome> {
     final colors = Theme.of(context).colorScheme;
     return [
       PersistentBottomNavBarItem(
-        icon: const Icon(Icons.card_membership_outlined),
-        title: ("כרטיסיה"),
-        activeColorPrimary: colors.primary,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
-      ),
-      PersistentBottomNavBarItem(
         icon: const Icon(CupertinoIcons.home),
         title: ("ראשי"),
         activeColorPrimary: colors.primary,
         inactiveColorPrimary: CupertinoColors.systemGrey,
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.settings),
-        title: ("הגדרות"),
+        icon: const Icon(Icons.card_membership_outlined),
+        title: ("כרטיסיה"),
         activeColorPrimary: colors.primary,
         inactiveColorPrimary: CupertinoColors.systemGrey,
       ),
+      // PersistentBottomNavBarItem(
+      //   icon: const Icon(CupertinoIcons.settings),
+      //   title: ("הגדרות"),
+      //   activeColorPrimary: colors.primary,
+      //   inactiveColorPrimary: CupertinoColors.systemGrey,
+      // ),
     ];
   }
 
@@ -105,5 +105,15 @@ class _ClientHomeState extends State<ClientHome> {
     notificationService.listenForMessages(context);
     notificationService.subscribeToHomepageTextTopic();
     notificationService.subscribeToUserNotifications(userInfo.uid);
+  }
+
+  void _organizePunchcard() {
+    final database = context.read<FirestoreDatabase>();
+    final userInfo = context.read<UserInfo>();
+    final punchcard = userInfo.punchcard;
+    if (punchcard == null) return;
+    if (punchcard.expiresOn.isBefore(DateTime.now())) {
+      database.movePunchcardToHistory(userInfo);
+    }
   }
 }

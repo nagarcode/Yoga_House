@@ -101,20 +101,19 @@ class _HomepageTextScreenState extends State<HomepageTextScreen> {
   }
 
   _submitHomepageMessage() async {
-    if (_homepageTextController.text == null ||
-        _homepageTextController.text.isEmpty) {
+    if (_homepageTextController.text.isEmpty) {
       return;
     }
     final shouldSend = await _didConfirm(notificationType.homepageNotification);
     if (!shouldSend) return;
-    await widget.database.setHomepageText(_homepageTextController.text);
+    await widget.database
+        .setHomepageText(_homepageTextController.text, widget.appInfo);
     await widget.database.addHomepageMessage(_homepageTextController.text);
     Navigator.of(context).pop();
   }
 
   Future<void> _submitSingleNotification() async {
-    if (_notificationTextController.text == null ||
-        _notificationTextController.text.isEmpty) {
+    if (_notificationTextController.text.isEmpty) {
       return;
     }
     final shouldSend = await _didConfirm(notificationType.singleNotification);

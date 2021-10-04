@@ -83,24 +83,24 @@ class LandingPage extends StatelessWidget {
   }
 
   Widget _managerSubTree(FirestoreDatabase database) {
-    return StreamBuilder<List<Practice>>(
-        stream: database.futurePracticesStream(),
-        builder: (context, futurePracticesSnapshot) {
-          if (Utils.connectionStateInvalid(futurePracticesSnapshot)) {
+    return StreamBuilder<AppInfo>(
+        stream: database.appInfoStream(),
+        builder: (context, appInfoSnapshot) {
+          if (Utils.connectionStateInvalid(appInfoSnapshot)) {
             return const SplashScreen();
           }
-          final futurePractices = futurePracticesSnapshot.data;
-          if (futurePractices == null) {
+          final appInfo = appInfoSnapshot.data;
+          if (appInfo == null) {
             return const SplashScreen();
           }
-          return StreamBuilder<AppInfo>(
-            stream: database.appInfoStream(),
-            builder: (context, appInfoSnapshot) {
-              if (Utils.connectionStateInvalid(appInfoSnapshot)) {
+          return StreamBuilder<List<Practice>>(
+            stream: database.futurePracticesStream(),
+            builder: (context, futurePracticesSnapshot) {
+              if (Utils.connectionStateInvalid(futurePracticesSnapshot)) {
                 return const SplashScreen();
               }
-              final appInfo = appInfoSnapshot.data;
-              if (appInfo == null) {
+              final futurePractices = futurePracticesSnapshot.data;
+              if (futurePractices == null) {
                 return const SplashScreen();
               }
               return MultiProvider(

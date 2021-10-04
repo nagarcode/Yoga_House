@@ -271,16 +271,38 @@ class FirestoreDatabase {
 
   Future<void> updatePunchCardTransaction({
     required String uid,
-    required Punchcard aggregatedPunchcard,
-    required Punchcard currentPunchcard,
+    required Punchcard punchcardToAdd,
   }) async {
     final userInfoRef = _instance.doc(APIPath.userInfo(uid));
-    final currenrtPunchcardRefInHistory = _instance.doc(
-        APIPath.userPunchCardFromHistory(uid, currentPunchcard.purchasedOn));
+
     return await _instance.runTransaction((transaction) async {
-      transaction.set(currenrtPunchcardRefInHistory, currentPunchcard.toMap());
+      final userInfoSnapshot = await transaction.get(userInfoRef);
+      final userInfoData = userInfoSnapshot.data();
+      if (userInfoData == null) return;
+      final userInfo = UserInfo.fromMap(userInfoData);
+      final currentPunchcard = userInfo.punchcard;
+      if (currentPunchcard == null) return;
+      final aggregatedPunchcard = currentPunchcard
+          .aggregate(punchcardToAdd); //first aggregate then make punchesLeft 0.
+      final currentPunchcardRefInHistory = _instance.doc(
+          APIPath.userPunchCardFromHistory(uid, currentPunchcard.purchasedOn));
+      transaction.set(currentPunchcardRefInHistory,
+          currentPunchcard.copyWith(punchesRemaining: 0).toMap());
       transaction
           .update(userInfoRef, {'punchcard': aggregatedPunchcard.toMap()});
+    });
+  }
+
+  Future<void> movePunchcardToHistory(UserInfo userInfo) async {
+    final punchcard = userInfo.punchcard;
+    if (punchcard == null) return;
+    final userInfoRef = _instance.doc(APIPath.userInfo(userInfo.uid));
+    final punchcardInHistoryPath =
+        APIPath.userPunchCardFromHistory(userInfo.uid, punchcard.purchasedOn);
+    final punchcardInHistoryRef = _instance.doc(punchcardInHistoryPath);
+    return await _instance.runTransaction((transaction) async {
+      transaction.update(userInfoRef, {'punchcard': null});
+      transaction.set(punchcardInHistoryRef, punchcard.toMap());
     });
   }
 
@@ -428,10 +450,56 @@ class FirestoreDatabase {
     transaction.set(ref, {'title': title, 'msg': msg});
   }
 
-  setHomepageText(String text) {}
+  Future<void> setHomepageText(String text, AppInfo oldAppInfo) async {
+    final path = APIPath.appInfo();
+    return await _instance.doc(path).update({'homepageText': text});
+  }
 
   Future<void> addHomepageMessage(String msg) async {
     final path = APIPath.newHomepageMessage();
     return _instance.doc(path).set({'msg': msg});
+  }
+
+  sendNotificationToUsers(List<UserInfo> sendTo, String title, String msg) {
+    _instance.runTransaction<bool>((transaction) async {
+      for (var user in sendTo) {
+        final ref = _instance.doc(APIPath.newUserNotification(user.uid));
+        final notification = NotificationData(
+            title: title,
+            msg: msg,
+            targetUID: user.uid,
+            targetUserNotificationTopic:
+                APIPath.clientNotificationsTopic(user.uid));
+        transaction.set(ref, notification.toMap());
+      }
+
+      return true;
+    });
+  }
+
+  _sendNotificationToUserTransaction(DocumentReference ref,
+      NotificationData notification, Transaction transaction) {
+    transaction.set(ref, notification.toMap());
+  }
+
+  Future<void> editPractice(Practice practice, String name, String location,
+      DateTime startTime) async {
+    final path = APIPath.futurePractice(practice.id);
+    final doc = _instance.doc(path);
+    return await doc
+        .update({'name': name, 'location': location, 'startTime': startTime});
+  }
+
+  Future<List<Punchcard>> userPunchcardsFuture(UserInfo user) async {
+    final path = APIPath.userPunchCardHistoryCollection(user.uid);
+    final reference = _instance.collection(path);
+    final docs = await reference.get();
+    final queries = docs.docs;
+    final punchcards = <Punchcard>[];
+    for (var query in queries) {
+      final data = query.data();
+      punchcards.add(Punchcard.fromMap(data));
+    }
+    return punchcards;
   }
 }

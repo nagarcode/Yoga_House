@@ -36,16 +36,12 @@ class _SignInScreenState extends State<SignInScreen> {
     codeSent = false;
     phoneNumber = TextEditingController();
     userEnteredCode = TextEditingController();
-    // _subscribeToNotification(); //TODO move to homepage
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    // final transformConfig = Matrix4.rotationZ(-8 * pi / 180);
-    // transformConfig.translate(-10.0);
     return Scaffold(
-      // resizeToAvoidBottomInset: false,
       body: _buildContent(),
     );
   }
@@ -253,7 +249,6 @@ class _SignInScreenState extends State<SignInScreen> {
           title: 'שגיאה',
           message: 'הקוד שהוכנס שגוי. נסה שוב.',
           okLabel: 'סגור');
-    } finally {
       _setIsLoading(false);
     }
   }

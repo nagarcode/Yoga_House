@@ -19,6 +19,20 @@ class AppInfo {
         isManagerTerminated, isClientTerminated);
   }
 
+  AppInfo copyWith(
+      {String? adminPhone,
+      String? homepageText,
+      int? minHoursToCancel,
+      bool? isManagerTerminated,
+      bool? isClientTerminated}) {
+    return AppInfo(
+        adminPhone ?? this.adminPhone,
+        homepageText ?? this.homepageText,
+        minHoursToCancel ?? this.minHoursToCancel,
+        isManagerTerminated ?? this.isManagerTerminated,
+        isClientTerminated ?? this.isClientTerminated);
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'adminPhone': adminPhone,

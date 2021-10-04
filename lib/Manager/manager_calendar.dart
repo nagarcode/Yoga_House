@@ -67,7 +67,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
         timeFormat: 'H:mm',
         startHour: 4,
         // timeInterval: Duration(minutes: 30),
-        timeIntervalHeight: 60,
+        timeIntervalHeight: 80,
       ),
     );
   }
@@ -81,7 +81,13 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
     }
   }
 
-  void _tappedAnAppointment(CalendarTapDetails tapDetails) {}
+  void _tappedAnAppointment(CalendarTapDetails tapDetails) async {
+    final apts = tapDetails.appointments;
+    if (apts == null || apts.isEmpty) return;
+    final appointment = apts.first;
+    final practice = _getPracticeWithId(appointment.id);
+    await practice.onTap(context, widget.database);
+  }
 
   void _tappedEmptySlot(CalendarTapDetails tapDetails) async {
     _startTime = tapDetails.date;
@@ -218,12 +224,12 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       _shouldPromtDetails = false;
       _shouldPromtDuration = false;
       await _createAndPersistPractice();
+      await showOkAlertDialog(
+          context: widget.parentScaffoldKey.currentContext!,
+          message: 'השיעור נוסף בהצלחה',
+          title: 'הצלחה',
+          okLabel: 'אוקי');
       Navigator.of(ctx).pop();
-      // showOkAlertDialog(
-      //     context: widget.parentScaffoldKey.currentContext!,
-      //     message: 'השיעור נוסף בהצלחה',
-      //     title: 'הצלחה',
-      //     okLabel: 'אוקי');
     } else {
       debugPrint("validation failed");
       _setIsLoading(false);
@@ -243,7 +249,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       maxLength: maxChars,
       name: 'name',
       decoration:
-          InputDecoration(labelText: 'שם אימון', labelStyle: labelStyle),
+          InputDecoration(labelText: 'שם שיעור', labelStyle: labelStyle),
       onChanged: (newStr) {
         if (newStr != null) _name = newStr;
       },
@@ -483,7 +489,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
         return startTime;
       }
     } else {
-      return DateTime.now().add(Duration(seconds: 60));
+      return DateTime.now().add(const Duration(seconds: 60));
     }
   }
 
@@ -496,6 +502,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       final max = practice.maxParticipants;
       final sub = '$registered/$max';
       final apt = Appointment(
+        id: practice.id,
         startTime: practice.startTime,
         endTime: practice.endTime,
         subject: '${practice.name} $sub',
@@ -504,6 +511,12 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       appointments.add(apt);
     }
     return DataSource(appointments);
+  }
+
+  Practice _getPracticeWithId(id) {
+    final practices = context.read<List<Practice>>();
+    final practice = practices.firstWhere((element) => element.id == id);
+    return practice;
   }
 }
 

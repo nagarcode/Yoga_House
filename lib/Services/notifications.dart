@@ -92,7 +92,7 @@ class NotificationService {
   }
 
   void subscribeToUserNotifications(String uid) {
-    _fcm.subscribeToTopic(uid);
+    _subscribeToTopic(APIPath.clientNotificationsTopic(uid));
   }
 
   Future<void> sendUserNotification(NotificationData notification) async {

@@ -43,7 +43,7 @@ class APIPath {
 //Notifications:
 
   static newUserNotification(String uid) =>
-      'User_Notifications/${DateTime.now()}';
+      'Client_Notifications/${DateTime.now()}';
 
   static String newAdminNotification() =>
       'Admin_Notifications/${DateTime.now()}';
@@ -58,11 +58,13 @@ class APIPath {
       'Notifications/Homepage_Messages/Notifications/${DateTime.now()}';
 
   //FCM topics
+  static String adminNotificationsTopic() => 'admin_notifications';
+
+  static String clientNotificationsTopic(String uid) => uid.toLowerCase();
+
   static String homepageTextTopic() => 'homepage_messages';
 
   static String userNotificationsTopic(String uid) => uid.toLowerCase();
-
-  static String adminNotificationsTopic() => 'admin_notifications';
 
   static String adminTopicUserRegistered() => 'user_registered_to_practice';
 

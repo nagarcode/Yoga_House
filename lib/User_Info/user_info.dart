@@ -147,12 +147,8 @@ class UserInfo {
     if (currentPunchcard == null) {
       await database.addNewPunchCardTransaction(uid, punchcardToAdd);
     } else {
-      final aggregatedPunchcard = currentPunchcard.aggregate(punchcardToAdd);
       await database.updatePunchCardTransaction(
-        uid: uid,
-        aggregatedPunchcard: aggregatedPunchcard,
-        currentPunchcard: currentPunchcard,
-      );
+          uid: uid, punchcardToAdd: punchcardToAdd);
     }
   }
 
