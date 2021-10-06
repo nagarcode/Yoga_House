@@ -31,14 +31,14 @@ class RegisterToPracticeScreen extends StatefulWidget {
 
 class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
   Widget get _noPracticesWidget =>
-      const Center(child: Text('אין תרגולים זמינים'));
+      const Center(child: Text('אין שיעורים זמינים'));
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
           title: Utils.appBarTitle(context,
-              widget.managerView ? 'תרגולים עתידיים' : 'רישום לתרגול')),
+              widget.managerView ? 'שיעורים עתידיים' : 'רישום לשיעור')),
       body: _practiceCardsListView(),
     );
   }
@@ -66,13 +66,16 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
     final userInfo = context.read<UserInfo>();
     final database = context.read<FirestoreDatabase>();
     return PracticeCard(
+      isInWaitingList: practice.isInWaitingList(userInfo),
       isHistory: false,
       database: database,
       managerView: widget.managerView,
       data: practice,
       registerCallback:
           practice.registerToPracticeCallback(userInfo, database, context),
-      waitingListCallback: () {}, //TODO change
+      waitingListCallback: () {
+        _waitingListCallback(practice, userInfo, database);
+      },
       isRegistered: practice.isUserRegistered(userInfo.uid),
       unregisterCallback: practice.unregisterFromPracticeCallback(
           userInfo, database, context, appInfo),
@@ -96,5 +99,16 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
     return Text('$verbouseDay, $groupByValue',
         style: theme.textTheme.bodyText1!.copyWith(fontSize: 18),
         textAlign: TextAlign.center);
+  }
+
+  _waitingListCallback(
+      Practice practice, UserInfo userInfo, FirestoreDatabase database) {
+    if (practice.isInWaitingList(userInfo)) {
+      print('in waiting list');
+      practice.leaveWaitingList(database, userInfo);
+    } else {
+      print('not in waiting list');
+      practice.joinWaitingList(database, userInfo, context);
+    }
   }
 }

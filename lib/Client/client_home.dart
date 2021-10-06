@@ -2,8 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
-import 'package:yoga_house/Client/client_settings_screen.dart';
-import 'package:yoga_house/Client_Profile/client_profile_screen.dart';
+import 'package:yoga_house/Client/client_personal_screen.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Services/app_info.dart';
 import 'package:yoga_house/Services/database.dart';
@@ -19,7 +18,7 @@ class ClientHome extends StatefulWidget {
 }
 
 class _ClientHomeState extends State<ClientHome> {
-  final _controller = PersistentTabController(initialIndex: 1);
+  final _controller = PersistentTabController(initialIndex: 0);
   @override
   void initState() {
     _listenForNotifications();
@@ -44,8 +43,11 @@ class _ClientHomeState extends State<ClientHome> {
           database: database,
           appInfo: appInfo,
           practicesRegisteredTo: practicesRegisteredTo),
-      ClientProfileScreen(
-          userInfo: userInfo, database: database, isManagerView: false),
+      ClientPersonalScreen(
+        user: userInfo,
+        database: database,
+        appInfo: appInfo,
+      ),
       // ClientSettingsScreen(),
     ];
   }
@@ -60,8 +62,8 @@ class _ClientHomeState extends State<ClientHome> {
         inactiveColorPrimary: CupertinoColors.systemGrey,
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(Icons.card_membership_outlined),
-        title: ("כרטיסיה"),
+        icon: const Icon(Icons.person_outline_outlined),
+        title: ("אישי"),
         activeColorPrimary: colors.primary,
         inactiveColorPrimary: CupertinoColors.systemGrey,
       ),

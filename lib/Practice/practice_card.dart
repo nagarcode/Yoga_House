@@ -7,6 +7,7 @@ import 'practice.dart';
 class PracticeCard extends StatefulWidget {
   final Practice data;
   final bool isRegistered;
+  final bool isInWaitingList;
   final Function registerCallback;
   final Function unregisterCallback;
   final Function waitingListCallback;
@@ -24,6 +25,7 @@ class PracticeCard extends StatefulWidget {
     required this.managerView,
     required this.database,
     required this.isHistory,
+    required this.isInWaitingList,
   }) : super(key: key);
 
   @override
@@ -131,7 +133,9 @@ class _PracticeCardState extends State<PracticeCard> {
         widget.isRegistered
             ? 'רשום. קליק לביטול רישום'
             : isFull
-                ? 'לרשימת המתנה'
+                ? widget.isInWaitingList
+                    ? 'צא מרשימת המתנה'
+                    : 'לרשימת המתנה'
                 : 'הירשם',
         style:
             widget.isRegistered ? registeredStyle : theme.textTheme.subtitle1,
@@ -143,7 +147,7 @@ class _PracticeCardState extends State<PracticeCard> {
     final theme = Theme.of(context);
     final users = widget.data.registeredParticipants;
     final rows = <Widget>[];
-    if (users.isEmpty) return const Text('טרם נרשמו מתאמנים לתרגול זה');
+    if (users.isEmpty) return const Text('טרם נרשמו מתאמנים לשיעור זה');
     for (var user in users) {
       final tile = ListTile(
         dense: true,

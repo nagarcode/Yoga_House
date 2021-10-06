@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
-import 'package:yoga_house/Client_Profile/punch_card_history_screen.dart';
 import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
-import 'package:yoga_house/common_widgets/custom_button.dart';
 import 'package:yoga_house/common_widgets/punch_card_view.dart';
 
 class ClientProfileScreen extends StatefulWidget {
@@ -46,7 +44,6 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
         children: [
           _buildInfoCard(),
           _buildPunchCard(),
-          _punchcardHistoryButton(),
         ],
       ),
     );
@@ -102,13 +99,5 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
             widget.userInfo.incrementPunchcard(widget.database, context),
       );
     }
-  }
-
-  _punchcardHistoryButton() {
-    return TextButton(
-        onPressed: () {
-          PunchcardHistoryScreen.pushToTabBar(context, widget.userInfo);
-        },
-        child: const Text('להיסטוריית כרטיסיות'));
   }
 }

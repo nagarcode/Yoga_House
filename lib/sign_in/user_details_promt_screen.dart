@@ -108,11 +108,6 @@ class _UserDetailsPromtScreenState extends State<UserDetailsPromtScreen> {
                 if (!_formKey.currentState!.validate()) return;
                 final user = await widget.auth.currentUser();
                 final uid = user!.uid;
-                // final notifications = //TODO move to homepage
-                //     context.read<NotificationService>();
-                // notifications.subscribeToHomepageTextTopic();
-                // notifications
-                //     .subscribeToUserNotificationsTopic(user.uid);
                 _setIsLoading(true);
                 await widget.auth.setName(firstName.text, lastName.text);
 
@@ -121,7 +116,7 @@ class _UserDetailsPromtScreenState extends State<UserDetailsPromtScreen> {
                     '${firstName.text} ${lastName.text}',
                     user.phoneNumber,
                     email.text);
-                _setIsLoading(false);
+                // _setIsLoading(false);
                 Navigator.of(context).pushReplacement(MaterialPageRoute(
                   builder: (context) => LandingPage(
                     sharedPrefs,

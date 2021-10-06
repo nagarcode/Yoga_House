@@ -107,13 +107,13 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       if (PracticeTemplate.numOfNotEmptyTemplates(templates) != 0)
         CardSelectionTile(
           context,
-          'הכנס אימון מתבנית מוכנה',
+          'הכנס שיעור מתבנית מוכנה',
           Icon(Icons.run_circle_outlined, color: theme.colorScheme.primary),
           (context) => _choseInsertWorkoutFromTemplate(context),
         ),
       CardSelectionTile(
         context,
-        'הכנס אימון חדש',
+        'הכנס שיעור חדש',
         Icon(Icons.run_circle_outlined, color: theme.colorScheme.primary),
         (context) => _choseInsertNewWorkout(context),
       ),
@@ -207,12 +207,12 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
                 _locationInput(ctx, labelStyle),
                 _maxParticipantsInput(ctx, labelStyle),
               ],
-              confirmText: 'הוסף אימון',
+              confirmText: 'הוסף שיעור',
               onConfirmed: () => _submitForm(ctx),
               innerCtx: ctx,
               style: style,
               formKey: _formKey,
-              title: 'הכנס אימון');
+              title: 'הכנס שיעור');
         });
   }
 
@@ -261,7 +261,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
   }
 
   _descriptionInput(BuildContext ctx, TextStyle labelStyle) {
-    const maxChars = 60;
+    const maxChars = 80;
     return FormBuilderTextField(
       initialValue: _description,
       maxLength: maxChars,
@@ -475,7 +475,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       _maxParticipants,
       [],
       0,
-      // 0
+      [],
     );
     await widget.database.addPractice(practice);
   }

@@ -22,7 +22,8 @@ class Practice {
   final int maxParticipants;
   final List<UserInfo> registeredParticipants;
   final int numOfUsersInWaitingList;
-  // final int numOfRegisteredParticipants;
+  final List<UserInfo> waitingList;
+
   int get numOfRegisteredParticipants => registeredParticipants.length;
 
   Practice(
@@ -38,10 +39,11 @@ class Practice {
     this.maxParticipants,
     this.registeredParticipants,
     this.numOfUsersInWaitingList,
-    // this.numOfRegisteredParticipants,
+    this.waitingList,
   );
   factory Practice.fromMap(Map<String, dynamic> data) {
     List<UserInfo> registered = _extractRegisteredUsers(data);
+    List<UserInfo> waitingList = _extractWaitingListUsers(data);
 
     return Practice(
       data['id'],
@@ -56,7 +58,7 @@ class Practice {
       data['maxParticipants'],
       registered,
       data['numOfUsersInWaitingList'],
-      // data['numOfRegisteredParticipants']
+      waitingList,
     );
   }
 
@@ -73,9 +75,23 @@ class Practice {
     return registered;
   }
 
+  static List<UserInfo> _extractWaitingListUsers(Map<String, dynamic> data) {
+    final List<UserInfo> waiting = [];
+    final usersMap = data['waitingList'];
+    if (usersMap.isNotEmpty) {
+      for (var key in usersMap.keys) {
+        final data = usersMap[key];
+        if (data == null) break;
+        waiting.add(UserInfo.fromMap(data));
+      }
+    }
+    return waiting;
+  }
+
   Map<String, dynamic> toMap() {
     final Map<String, Map<String, dynamic>> registeredParticipants =
         _mapRegisteredUsers();
+    final Map<String, dynamic> waitingList = _mapWaitingList();
     return {
       'id': id,
       'name': name,
@@ -90,6 +106,7 @@ class Practice {
       'numOfUsersInWaitingList': numOfUsersInWaitingList,
       'numOfRegisteredParticipants': numOfRegisteredParticipants,
       'registeredParticipants': registeredParticipants,
+      'waitingList': waitingList,
     };
   }
 
@@ -102,20 +119,31 @@ class Practice {
     return toReturn;
   }
 
-  Practice copyWith(
-      {String? id,
-      String? name,
-      String? level,
-      String? managerName,
-      String? managerUID,
-      String? description,
-      String? location,
-      DateTime? startTime,
-      DateTime? endTime,
-      int? maxParticipants,
-      List<UserInfo>? registeredParticipants,
-      int? numOfUsersInWaitingList,
-      int? numOfRegisteredParticipants}) {
+  Map<String, Map<String, dynamic>> _mapWaitingList() {
+    final Map<String, Map<String, dynamic>> toReturn = {};
+    if (waitingList.isEmpty) return toReturn;
+    for (var userInfo in waitingList) {
+      toReturn[userInfo.uid] = userInfo.toMap();
+    }
+    return toReturn;
+  }
+
+  Practice copyWith({
+    String? id,
+    String? name,
+    String? level,
+    String? managerName,
+    String? managerUID,
+    String? description,
+    String? location,
+    DateTime? startTime,
+    DateTime? endTime,
+    int? maxParticipants,
+    List<UserInfo>? registeredParticipants,
+    int? numOfUsersInWaitingList,
+    int? numOfRegisteredParticipants,
+    List<UserInfo>? waitingList,
+  }) {
     return Practice(
       id ?? this.id,
       name ?? this.name,
@@ -129,7 +157,7 @@ class Practice {
       maxParticipants ?? this.maxParticipants,
       registeredParticipants ?? this.registeredParticipants,
       numOfUsersInWaitingList ?? this.numOfUsersInWaitingList,
-      // numOfRegisteredParticipants ?? this.numOfRegisteredParticipants
+      waitingList ?? this.waitingList,
     );
   }
 
@@ -178,7 +206,7 @@ class Practice {
           if (didRequestUnregister) {
             bool shouldRestorePunch = isEnoughTimeLeftToCancel(appInfo);
             database.unregisterFromPracticeTransaction(
-                userInfo, id, shouldRestorePunch);
+                userInfo, this, shouldRestorePunch);
           }
         }
       } on Exception catch (_) {
@@ -256,7 +284,7 @@ class Practice {
     await showOkAlertDialog(
         context: screenContext,
         title: 'אין כרטיסיה',
-        message: 'יש לרכוש כרטיסיה על מנת להירשם לתרגולים. לרכישה אנא צור קשר.',
+        message: 'יש לרכוש כרטיסיה על מנת להירשם לשיעורים. לרכישה אנא צור קשר.',
         okLabel: 'אישור');
   }
 
@@ -294,7 +322,7 @@ class Practice {
       ),
       CardSelectionTile(
         context,
-        'בטל תרגול',
+        'בטל שיעור',
         Icon(Icons.delete_outline_outlined, color: theme.colorScheme.primary),
         (context) => _delete(context, database),
       ),
@@ -313,9 +341,9 @@ class Practice {
     final didRequestDelete = await showOkCancelAlertDialog(
         context: context,
         isDestructiveAction: true,
-        title: 'ביטול תרגול',
+        title: 'ביטול שיעור',
         message:
-            'האם לבטל תרגול זה? במידה ויש מתאמנים רשומים, מומלץ לשלוח להם תחילה הודעה על ביטול.');
+            'האם לבטל שיעור זה? במידה ויש מתאמנים רשומים, מומלץ לשלוח להם תחילה הודעה על ביטול.');
     return didRequestDelete == OkCancelResult.ok;
   }
 
@@ -340,6 +368,8 @@ class Practice {
 
   _sendNotificationToRegisteredClients(
       BuildContext context, FirestoreDatabase database) async {
+    final date = Utils.numericDayMonthYearFromDateTime(startTime);
+    final hour = Utils.hourFromDateTime(startTime);
     Navigator.of(context).pop();
     final field = DialogTextField(
         validator: _notificationTextValidator,
@@ -349,7 +379,7 @@ class Practice {
         await showTextInputDialog(context: context, textFields: [field]);
     if (textList == null || textList.isEmpty) return;
     final notificationText = textList.first;
-    const title = 'ביטול תרגול';
+    final title = '$name בתאריך $date בשעה $hour';
     final sendTo = registeredParticipants;
     await database.sendNotificationToUsers(sendTo, title, notificationText);
     // await showOkAlertDialog(
@@ -364,6 +394,41 @@ class Practice {
     } else {
       return null;
     }
+  }
+
+  Future<void> joinWaitingList(
+      FirestoreDatabase database, UserInfo user, BuildContext context) async {
+    if (startTime.isBefore(DateTime.now())) return;
+    database.addUserToWaitingList(this, user);
+    await showOkAlertDialog(
+        context: context,
+        message:
+            'נרשמת בהצלחה לרשימת ההמתנה של שיעור זה. במידה ויתפנה מקום תקבל התראה מיידית.',
+        title: 'הצלחה');
+  }
+
+  Future<void> leaveWaitingList(
+      FirestoreDatabase database, UserInfo user) async {
+    if (startTime.isBefore(DateTime.now())) return;
+    return await database.removeUserFromWaitingList(this, user);
+  }
+
+  Practice withUserAddedToWaitingList(UserInfo userInfo) {
+    final newWaitingList = <UserInfo>[];
+    newWaitingList.addAll(waitingList);
+    newWaitingList.add(userInfo);
+    return copyWith(waitingList: newWaitingList);
+  }
+
+  Practice withUserRemovedFromWaitingList(UserInfo userInfo) {
+    final newWaitingList = <UserInfo>[];
+    newWaitingList.addAll(waitingList);
+    newWaitingList.removeWhere((element) => element.uid == userInfo.uid);
+    return copyWith(waitingList: newWaitingList);
+  }
+
+  bool isInWaitingList(UserInfo user) {
+    return waitingList.any((element) => element.uid == user.uid);
   }
 }
 

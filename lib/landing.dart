@@ -63,7 +63,7 @@ class LandingPage extends StatelessWidget {
                         ? UserDetailsPromtScreen(auth: auth, database: database)
                         : _isManager(userInfo)
                             ? _managerSubTree(database)
-                            : clientSubTree(database),
+                            : clientSubTree(database, userInfo),
                   );
                 });
           }
@@ -117,7 +117,7 @@ class LandingPage extends StatelessWidget {
         });
   }
 
-  Widget clientSubTree(FirestoreDatabase database) {
+  Widget clientSubTree(FirestoreDatabase database, UserInfo userInfo) {
     return FutureBuilder<AppInfo>(
         future: database.appInfoFuture(),
         builder: (context, appInfoSnapshot) {
@@ -143,7 +143,7 @@ class LandingPage extends StatelessWidget {
                     Provider<AppInfo>.value(value: appInfo),
                     Provider<List<Practice>>.value(value: futurePractices),
                   ],
-                  child: appInfo.isClientTerminated
+                  child: appInfo.isClientTerminated && !userInfo.isTomer()
                       ? const InfoScreen(PageType.clientTerminated)
                       // ignore: prefer_const_constructors
                       : ClientHome(),

@@ -66,7 +66,7 @@ class AdminNotificationsSettingsState
     final notifications = context.read<NotificationService>();
     final theme = Theme.of(context);
     return SettingsTile.switchTile(
-      title: 'לקוח נרשם לאימון',
+      title: 'לקוח נרשם לשיעור',
       titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
       onToggle: (newVal) {
         widget.prefs.toggleAdminNotificationClientRegistered(newVal);
@@ -89,7 +89,7 @@ class AdminNotificationsSettingsState
     final notifications = context.read<NotificationService>();
     final theme = Theme.of(context);
     return SettingsTile.switchTile(
-      title: 'לקוח ביטל הגעה לאימון',
+      title: 'לקוח ביטל רישום לשיעור',
       titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
       onToggle: (newVal) {
         if (newVal) {

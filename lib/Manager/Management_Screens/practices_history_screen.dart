@@ -8,20 +8,32 @@ import 'package:yoga_house/Services/database.dart';
 import 'package:intl/intl.dart';
 import 'package:yoga_house/Services/splash_screen.dart';
 import 'package:yoga_house/Services/utils_file.dart';
+import 'package:yoga_house/User_Info/user_info.dart';
 
 class PracticesHistoryScreen extends StatefulWidget {
   final FirestoreDatabase database;
+  final UserInfo? userToDisplay;
+  final bool isManagerView;
 
-  static Future<void> pushToTabBar(BuildContext context) async {
+  static Future<void> pushToTabBar(
+      BuildContext context, UserInfo? userToDisplay, bool isManagerView) async {
     final database = context.read<FirestoreDatabase>();
     await pushNewScreen(
       context,
       // ignore: prefer_const_constructors
-      screen: PracticesHistoryScreen(database: database),
+      screen: PracticesHistoryScreen(
+        database: database,
+        userToDisplay: userToDisplay,
+        isManagerView: isManagerView,
+      ),
     );
   }
 
-  const PracticesHistoryScreen({Key? key, required this.database})
+  const PracticesHistoryScreen(
+      {Key? key,
+      required this.database,
+      required this.userToDisplay,
+      required this.isManagerView})
       : super(key: key);
 
   @override
@@ -31,7 +43,7 @@ class PracticesHistoryScreen extends StatefulWidget {
 class _PracticesHistoryScreenState extends State<PracticesHistoryScreen> {
   late Future<List<Practice>> allPracticesFuture;
   Widget get _noPracticesWidget =>
-      const Center(child: Text('אין תרגולים זמינים'));
+      const Center(child: Text('אין שיעורים זמינים'));
   @override
   void initState() {
     allPracticesFuture = widget.database.practicesHistoryFuture();
@@ -41,7 +53,7 @@ class _PracticesHistoryScreenState extends State<PracticesHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Utils.appBarTitle(context, 'היסטוריית תרגולים')),
+      appBar: AppBar(title: Utils.appBarTitle(context, 'היסטוריית שיעורים')),
       body: FutureBuilder<List<Practice>>(
           future: allPracticesFuture,
           builder: (context, snapshot) {
@@ -59,10 +71,14 @@ class _PracticesHistoryScreenState extends State<PracticesHistoryScreen> {
 
   Widget _practiceCardsListView(List<Practice> allPractices) {
     if (allPractices.isEmpty) return _noPracticesWidget;
+    final practicesToDisplay = _practicesToDisplay(allPractices);
+    if (practicesToDisplay.isEmpty) {
+      return const Center(child: Text('טרם נרשמת לשיעורים.'));
+    }
     return GroupedListView<Practice, String>(
       shrinkWrap: true,
       useStickyGroupSeparators: true,
-      elements: allPractices,
+      elements: practicesToDisplay,
       groupBy: _groupBy,
       groupSeparatorBuilder: _groupSeparatorBuilder,
       itemBuilder: _itemBuilder,
@@ -74,6 +90,7 @@ class _PracticesHistoryScreenState extends State<PracticesHistoryScreen> {
   Widget _itemBuilder(BuildContext listContext, Practice practice) {
     final database = context.read<FirestoreDatabase>();
     return PracticeCard(
+      isInWaitingList: false,
       isHistory: true,
       database: database,
       managerView: true,
@@ -102,5 +119,13 @@ class _PracticesHistoryScreenState extends State<PracticesHistoryScreen> {
     return Text('$verbouseDay, $groupByValue',
         style: theme.textTheme.bodyText1!.copyWith(fontSize: 18),
         textAlign: TextAlign.center);
+  }
+
+  List<Practice> _practicesToDisplay(List<Practice> allPractices) {
+    final userToDisplay = widget.userToDisplay;
+    if (userToDisplay == null) return allPractices;
+    return allPractices
+        .where((practice) => practice.isUserRegistered(userToDisplay.uid))
+        .toList();
   }
 }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:yoga_house/Client/health_assurance_screen.dart';
 import 'package:yoga_house/Client_Profile/client_profile_screen.dart';
+import 'package:yoga_house/Client_Profile/punch_card_history_screen.dart';
+import 'package:yoga_house/Manager/Management_Screens/practices_history_screen.dart';
 import 'package:yoga_house/Manager/new_punchcard_form.dart';
 import 'package:yoga_house/Manager/search_widget.dart';
 import 'package:yoga_house/Services/database.dart';
@@ -124,6 +127,35 @@ class _ClientsScreenState extends State<ClientsScreen> {
         Icon(FontAwesomeIcons.whatsapp, color: theme.colorScheme.primary),
         (cardContext) {
           Utils.launchWhatsapp(userInfo.phoneNumber);
+        },
+      ),
+      CardSelectionTile(
+        innerContext,
+        'הצהרת בריאות',
+        Icon(Icons.health_and_safety_outlined,
+            color: theme.colorScheme.primary),
+        (cardContext) async {
+          Navigator.of(cardContext).pop();
+          await HealthAssuranceScreen.pushToTabBar(context, userInfo);
+        },
+      ),
+      CardSelectionTile(
+        innerContext,
+        'היסטוריית שיעורים',
+        Icon(Icons.run_circle_outlined, color: theme.colorScheme.primary),
+        (cardContext) async {
+          Navigator.of(cardContext).pop();
+          await PracticesHistoryScreen.pushToTabBar(context, userInfo, false);
+        },
+      ),
+      CardSelectionTile(
+        innerContext,
+        'היסטוריית כרטיסיות',
+        Icon(Icons.history_toggle_off_outlined,
+            color: theme.colorScheme.primary),
+        (cardContext) async {
+          Navigator.of(cardContext).pop();
+          await PunchcardHistoryScreen.pushToTabBar(context, userInfo);
         },
       ),
       CardSelectionTile(

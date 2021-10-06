@@ -36,14 +36,16 @@ class APIPath {
   static String userPunchCardFromHistory(String uid, DateTime purchasedOn) =>
       'users/$uid/Punchcard_History/${Utils.idFromPastTime(purchasedOn)}';
 
+  static String newHealthAssuranceInHistory(String uid) =>
+      'users/$uid/Health_Assurance_History/${DateTime.now()}';
+
   //Assets:
 
   static String logo() => 'assets/images/cropped_logo.png';
 
 //Notifications:
 
-  static newUserNotification(String uid) =>
-      'Client_Notifications/${DateTime.now()}';
+  static newUserNotification() => 'Client_Notifications/${DateTime.now()}';
 
   static String newAdminNotification() =>
       'Admin_Notifications/${DateTime.now()}';

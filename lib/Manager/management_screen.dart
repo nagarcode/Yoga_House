@@ -47,7 +47,7 @@ class _ManagementScreenState extends State<ManagementScreen> {
       titleTextStyle: theme.textTheme.bodyText1,
       tiles: [
         SettingsTile(
-          title: 'רשימת התרגולים',
+          title: 'רשימת השיעורים',
           leading: Icon(Icons.run_circle_outlined, color: iconColor),
           titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onPressed: (context) async {
@@ -79,11 +79,11 @@ class _ManagementScreenState extends State<ManagementScreen> {
           },
         ),
         SettingsTile(
-          title: 'היסטוריית תרגולים',
+          title: 'היסטוריית שיעורים',
           titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           leading: Icon(Icons.history_toggle_off_rounded, color: iconColor),
           onPressed: (context) async {
-            await PracticesHistoryScreen.pushToTabBar(context);
+            await PracticesHistoryScreen.pushToTabBar(context, null, true);
           },
         ),
         // SettingsTile(

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:yoga_house/Client/health_assurance.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Practice/practice_template.dart';
 import 'package:yoga_house/Services/shared_prefs.dart';
@@ -117,6 +118,14 @@ class FirestoreDatabase {
     return _streamFromDoc(docPath, (data) => UserInfo.fromMap(data));
   }
 
+  Future<UserInfo> userInfoFuture(String uid) async {
+    final docPath = APIPath.userInfo(uid);
+    final ref = await _instance.doc(docPath).get();
+    final data = ref.data();
+    if (data == null) return UserInfo.initEmptyUserInfo(uid);
+    return UserInfo.fromMap(data);
+  }
+
   Stream<AppInfo> appInfoStream() {
     final path = APIPath.appInfo();
     return _streamFromDoc(path, (data) {
@@ -174,15 +183,18 @@ class FirestoreDatabase {
       transaction.update(practiceRef, practicePost.toMap());
       transaction.update(
           userInfoRef, userToAdd.copyWithDecrementedPunch().toMap());
+      if (practicePost.isInWaitingList(userToAdd)) {
+        await _removeUserFromWaitingListTransaction(
+            practicePost, userToAdd, transaction);
+      }
       return true;
     });
   }
 
   Future<bool> unregisterFromPracticeTransaction(UserInfo userToRemoveObj,
-      String practiceID, bool shouldRestorePunch) async {
+      Practice practice, bool shouldRestorePunch) async {
     final userInfoRef = _instance.doc(APIPath.userInfo(userToRemoveObj.uid));
-    final practiceRef = _instance.doc(APIPath.futurePractice(practiceID));
-    final adminNotificationRef = _instance.doc(APIPath.newAdminNotification());
+    final practiceRef = _instance.doc(APIPath.futurePractice(practice.id));
     return await _instance.runTransaction<bool>((transaction) async {
       final userInfoSnapshot = await transaction.get(userInfoRef);
       final practiceSnapshot = await transaction.get(practiceRef);
@@ -204,6 +216,7 @@ class FirestoreDatabase {
       }
       _sendClientCancelledAdminNotificationTransaction(
           userToRemove, practicePre, transaction);
+      _notifyWaitingListTransaction(practice, transaction);
       return true;
     });
   }
@@ -407,8 +420,7 @@ class FirestoreDatabase {
   }
 
   Future<void> addNotificationToUser(NotificationData notification) async {
-    final reference =
-        _instance.doc(APIPath.newUserNotification(notification.targetUID));
+    final reference = _instance.doc(APIPath.newUserNotification());
     await reference.set(notification.toMap());
   }
 
@@ -432,7 +444,7 @@ class FirestoreDatabase {
     final practiceName = practice.name;
     final practiceDate =
         Utils.numericDayMonthYearFromDateTime(practice.startTime);
-    const title = 'ביטול רישום לתרגול';
+    const title = 'ביטול רישום לשיעור';
     final msg =
         '$username ביטל רישום ל$practiceName שיתקיים בתאריך $practiceDate';
     transaction.set(ref, {'title': title, 'msg': msg});
@@ -445,7 +457,7 @@ class FirestoreDatabase {
     final practiceName = practice.name;
     final practiceDate =
         Utils.numericDayMonthYearFromDateTime(practice.startTime);
-    const title = 'רישום לתרגול';
+    const title = 'רישום לשיעור';
     final msg = '$username נרשם ל$practiceName בתאריך $practiceDate';
     transaction.set(ref, {'title': title, 'msg': msg});
   }
@@ -463,7 +475,7 @@ class FirestoreDatabase {
   sendNotificationToUsers(List<UserInfo> sendTo, String title, String msg) {
     _instance.runTransaction<bool>((transaction) async {
       for (var user in sendTo) {
-        final ref = _instance.doc(APIPath.newUserNotification(user.uid));
+        final ref = _instance.doc(APIPath.newUserNotification());
         final notification = NotificationData(
             title: title,
             msg: msg,
@@ -501,5 +513,79 @@ class FirestoreDatabase {
       punchcards.add(Punchcard.fromMap(data));
     }
     return punchcards;
+  }
+
+  Future<void> toggleTerminateClient(bool newValue) async {
+    final path = APIPath.appInfo();
+    return await _instance.doc(path).update({'isClientTerminated': newValue});
+  }
+
+  Future<void> toggleTerminateManager(bool newValue) async {
+    final path = APIPath.appInfo();
+    return await _instance.doc(path).update({'isManagerTerminated': newValue});
+  }
+
+  Future<void> setHealthAssurance(
+      UserInfo userInfo, HealthAssurance healthAssurance) async {
+    final path = APIPath.userInfo(userInfo.uid);
+    final haInHistoryPath = APIPath.newHealthAssuranceInHistory(userInfo.uid);
+    await _instance.doc(haInHistoryPath).set(healthAssurance.toMap());
+    return await _instance
+        .doc(path)
+        .update({'healthAssurance': healthAssurance.toMap()});
+  }
+
+  Future<void> addUserToWaitingList(
+      Practice practiceToJoin, UserInfo user) async {
+    final practicePath = APIPath.futurePractice(practiceToJoin.id);
+    final practiceRef = _instance.doc(practicePath);
+    return await _instance.runTransaction((transaction) async {
+      final practiceData =
+          await transaction.get(practiceRef).then((value) => value.data());
+      if (practiceData == null) return;
+      final practicePre = Practice.fromMap(practiceData);
+      final practicePost = practicePre.withUserAddedToWaitingList(user);
+      transaction.update(practiceRef, practicePost.toMap());
+    });
+  }
+
+  removeUserFromWaitingList(Practice practiceToLeave, UserInfo user) async {
+    final practicePath = APIPath.futurePractice(practiceToLeave.id);
+    final practiceRef = _instance.doc(practicePath);
+    return await _instance.runTransaction((transaction) async {
+      final practiceData =
+          await transaction.get(practiceRef).then((value) => value.data());
+      if (practiceData == null) return;
+      final practicePre = Practice.fromMap(practiceData);
+      final practicePost = practicePre.withUserRemovedFromWaitingList(user);
+      transaction.update(practiceRef, practicePost.toMap());
+    });
+  }
+
+  void _notifyWaitingListTransaction(
+      Practice practice, Transaction transaction) {
+    final name = practice.name;
+    final title = 'רשימת המתנה: $name';
+    final date = Utils.numericDayMonthYearFromDateTime(practice.startTime);
+    final hour = Utils.hourFromDateTime(practice.startTime);
+    final msg = 'התפנה מקום לשיעור $name בתאריך $date בשעה $hour.';
+    for (var user in practice.waitingList) {
+      final path = APIPath.newUserNotification();
+      final ref = _instance.doc(path);
+      final notification = NotificationData(
+          targetUID: user.uid,
+          targetUserNotificationTopic: APIPath.userNotificationsTopic(user.uid),
+          title: title,
+          msg: msg);
+      transaction.set(ref, notification.toMap());
+    }
+  }
+
+  _removeUserFromWaitingListTransaction(
+      Practice practice, UserInfo user, Transaction transaction) async {
+    final practicePath = APIPath.futurePractice(practice.id);
+    final practiceRef = _instance.doc(practicePath);
+    final practicePost = practice.withUserRemovedFromWaitingList(user);
+    transaction.update(practiceRef, practicePost.toMap());
   }
 }

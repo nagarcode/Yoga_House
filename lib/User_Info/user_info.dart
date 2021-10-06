@@ -1,7 +1,9 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:yoga_house/Canellation/cancellation.dart';
+import 'package:yoga_house/Client/health_assurance.dart';
 import 'package:yoga_house/Practice/practice.dart';
+import 'package:yoga_house/Services/auth.dart';
 import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/common_widgets/punch_card.dart';
 
@@ -16,7 +18,9 @@ class UserInfo {
   final bool approvedTermsOfService;
   final bool submittedHealthAssurance;
   final Punchcard? punchcard;
+  final HealthAssurance? healthAssurance;
 
+  bool get didSubmitHealthAssurance => healthAssurance != null;
   bool get hasPunchcard => punchcard != null;
   bool get hasPunchesLeft {
     final pnchcrd = punchcard;
@@ -38,22 +42,23 @@ class UserInfo {
       approvedTermsOfService: false,
       isManager: false,
       punchcard: null,
+      healthAssurance: null,
     );
   }
 
   static UserInfo initNewUserInfo(
       String uid, String name, String phone, String email) {
     return UserInfo(
-      name: name,
-      phoneNumber: phone,
-      email: email,
-      cancelationsHistory: [],
-      uid: uid,
-      approvedTermsOfService: false,
-      submittedHealthAssurance: false,
-      isManager: false,
-      punchcard: null,
-    );
+        name: name,
+        phoneNumber: phone,
+        email: email,
+        cancelationsHistory: [],
+        uid: uid,
+        approvedTermsOfService: false,
+        submittedHealthAssurance: false,
+        isManager: false,
+        punchcard: null,
+        healthAssurance: null);
   }
 
   UserInfo({
@@ -67,13 +72,19 @@ class UserInfo {
     required this.approvedTermsOfService,
     required this.submittedHealthAssurance,
     required this.punchcard,
+    required this.healthAssurance,
   });
 
   factory UserInfo.fromMap(Map<String, dynamic> data) {
     final punchcardData = data['punchcard'];
+    final healthAssuranceData = data['healthAssurance'];
     Punchcard? punchCard;
     if (punchcardData != null) {
       punchCard = Punchcard.fromMap(punchcardData);
+    }
+    HealthAssurance? healthAssurance;
+    if (healthAssuranceData != null) {
+      healthAssurance = HealthAssurance.fromMap(healthAssuranceData);
     }
     return UserInfo(
       name: data['name'],
@@ -86,6 +97,7 @@ class UserInfo {
       approvedTermsOfService: data['approvedTermsOfService'],
       submittedHealthAssurance: data['submittedHealthAssurance'],
       punchcard: punchCard,
+      healthAssurance: healthAssurance,
     );
   }
 
@@ -99,6 +111,7 @@ class UserInfo {
       'approvedTermsOfService': approvedTermsOfService,
       'submittedHealthAssurance': submittedHealthAssurance,
       'punchcard': punchcard?.toMap(),
+      'healthAssurance': healthAssurance?.toMap(),
     };
   }
 
@@ -125,6 +138,7 @@ class UserInfo {
       approvedTermsOfService:
           approvedTermsOfService ?? this.approvedTermsOfService,
       punchcard: punchCard ?? punchcard,
+      healthAssurance: healthAssurance ?? healthAssurance,
     );
   }
 
@@ -188,6 +202,10 @@ class UserInfo {
       throw Exception('Punchcard cant be incremented if null');
     }
     return copyWith(punchCard: pnchcrd.copyWithIncrementPunches());
+  }
+
+  isTomer() {
+    return phoneNumber == tomersPhone;
   }
 
   // bool isRegisteredToPractice(String practiceID) {

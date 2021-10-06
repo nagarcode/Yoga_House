@@ -2,6 +2,7 @@ import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:provider/provider.dart';
+import 'package:yoga_house/Client/health_assurance_screen.dart';
 import 'package:yoga_house/Client/register_to_practice_screen.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Practice/practice_card.dart';
@@ -29,10 +30,11 @@ class ClientMainScreen extends StatefulWidget {
 }
 
 class _ClientMainScreenState extends State<ClientMainScreen> {
-  get _practicesText => const Text('התרגולים שלי', textAlign: TextAlign.center);
+  get _practicesText => const Text('השיעורים שלי', textAlign: TextAlign.center);
 
   @override
   Widget build(BuildContext context) {
+    final userInfo = context.read<UserInfo>();
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
@@ -49,7 +51,9 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
               if (widget.practicesRegisteredTo.isNotEmpty) _practicesText,
               if (widget.practicesRegisteredTo.isNotEmpty)
                 _practiceCardsListView(),
-              SizedBox(height: 60, child: _registerToPracticeButton),
+              userInfo.didSubmitHealthAssurance
+                  ? SizedBox(height: 60, child: _registerToPracticeButton)
+                  : _haColumn(userInfo, theme),
             ],
           ),
         ),
@@ -65,7 +69,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
           ),
           child: const Text(
-            'רישום לתרגול',
+            'רישום לשיעור',
             style: TextStyle(fontSize: 20),
           ),
           onPressed: () async {
@@ -151,13 +155,14 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
     final userInfo = context.read<UserInfo>();
     final database = context.read<FirestoreDatabase>();
     return PracticeCard(
+      isInWaitingList: practice.isInWaitingList(userInfo),
       isHistory: false,
       database: database,
       managerView: false,
       data: practice,
       registerCallback: practice.registerToPracticeCallback(
           userInfo, widget.database, context),
-      waitingListCallback: () {}, //TODO change
+      waitingListCallback: () => {},
       isRegistered: practice.isUserRegistered(userInfo.uid),
       unregisterCallback: practice.unregisterFromPracticeCallback(
           userInfo, widget.database, context, widget.appInfo),
@@ -181,5 +186,37 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
     return Text('$verbouseDay, $groupByValue',
         style: theme.textTheme.bodyText1!.copyWith(fontSize: 18),
         textAlign: TextAlign.center);
+  }
+
+  Widget _haColumn(UserInfo userInfo, ThemeData theme) {
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      children: [
+        Center(
+            child: Text('על מנת להירשם לשיעורים חובה למלא תחילה הצהרת בריאות.',
+                style: theme.textTheme.bodyText1)),
+        SizedBox(height: 60, child: _haButton(userInfo, theme)),
+      ],
+    );
+  }
+
+  _haButton(UserInfo userInfo, ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 8),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+        ),
+        child: const Text(
+          'מלא הצהרת בריאות',
+          style: TextStyle(fontSize: 20),
+        ),
+        onPressed: () async {
+          await HealthAssuranceScreen.pushToTabBar(context, userInfo);
+        },
+      ),
+    );
   }
 }

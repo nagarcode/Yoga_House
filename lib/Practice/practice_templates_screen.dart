@@ -56,7 +56,7 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Utils.appBarTitle(context, 'תבניות אימון'),
+        title: Utils.appBarTitle(context, 'תבניות שיעור'),
       ),
       body: Column(
         children: [
@@ -102,12 +102,12 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
                 _locationInput(ctx, labelStyle),
                 _maxParticipantsInput(ctx, labelStyle),
               ],
-              confirmText: 'הוסף אימון',
+              confirmText: 'הוסף שיעור',
               onConfirmed: () => _submitForm(ctx),
               innerCtx: ctx,
               style: style!,
               formKey: _formKey,
-              title: 'אימון קבוע חדש');
+              title: 'שיעור קבוע חדש');
         });
   }
 
@@ -126,7 +126,7 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
               innerCtx: ctx,
               style: style!,
               formKey: _durationFormKey,
-              title: 'משך האימון');
+              title: 'משך השיעור');
         });
   }
 
@@ -147,7 +147,7 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
       maxLength: maxChars,
       name: 'name',
       decoration:
-          InputDecoration(labelText: 'שם אימון', labelStyle: labelStyle),
+          InputDecoration(labelText: 'שם שיעור', labelStyle: labelStyle),
       onChanged: (newStr) {
         if (newStr != null) _name = newStr;
       },
@@ -159,7 +159,7 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
   }
 
   Widget _descriptionInput(BuildContext ctx, TextStyle labelStyle) {
-    const maxChars = 60;
+    const maxChars = 100;
     return FormBuilderTextField(
       maxLength: maxChars,
       name: 'description',
@@ -282,7 +282,7 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
   Future<bool> _didRequestDelete() async {
     return await showOkCancelAlertDialog(
             context: context,
-            message: 'האם למחוק תבנית אימון זו?',
+            message: 'האם למחוק תבנית שיעור זו?',
             okLabel: 'מחק',
             isDestructiveAction: true,
             cancelLabel: 'ביטול') ==
@@ -297,7 +297,7 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
         const SizedBox(height: 8),
         Center(
             child: Text(
-          'לחצי על הפלוס על מנת להוסיף תבניות אימון',
+          'לחצי על הפלוס על מנת להוסיף תבניות שיעור',
           style: theme.textTheme.bodyText1,
         )),
       ],
@@ -311,7 +311,7 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
       builder: (FormFieldState<dynamic> field) {
         return InputDecorator(
           decoration: InputDecoration(
-            labelText: "משך האימון",
+            labelText: "משך השיעור",
             errorText: field.errorText,
           ),
           child: SizedBox(
@@ -329,7 +329,7 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
 
   String? _durationValidator(dynamic v) {
     if (_durationMinutes == 0) {
-      return 'חובה לבחור משך אימון';
+      return 'חובה לבחור משך שיעור';
     } else {
       return null;
     }

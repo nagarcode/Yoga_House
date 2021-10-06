@@ -76,7 +76,7 @@ class _EditPracticeFormState extends State<EditPracticeForm> {
       maxLength: maxChars,
       name: 'name',
       decoration:
-          InputDecoration(labelText: 'שם אימון', labelStyle: labelStyle),
+          InputDecoration(labelText: 'שם שיעור', labelStyle: labelStyle),
       onChanged: (newStr) {
         if (newStr != null) _name = newStr;
       },
