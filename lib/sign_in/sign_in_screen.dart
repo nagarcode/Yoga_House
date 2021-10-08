@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:yoga_house/Services/auth.dart';
-import 'package:yoga_house/Services/notifications.dart';
 import 'package:yoga_house/common_widgets/custom_button.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -107,6 +106,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   _verifyLoginButton() {
     return CustomButton(
+        color: null,
         msg: codeSent ? "התחבר" : "אמת",
         onTap: isLoading
             ? null
@@ -260,10 +260,4 @@ class _SignInScreenState extends State<SignInScreen> {
       return null;
     }
   }
-
-  // Future<void> _subscribeToNotification() async { //TODO move to homepage!
-  //   final notifications = context.read<NotificationService>();
-  //   final user = await widget.auth.currentUser();
-  //   notifications.initUserNotifications(user!.uid);
-  // }
 }

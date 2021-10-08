@@ -164,11 +164,11 @@ class Practice {
   Function registerToPracticeCallback(UserInfo userInfo,
       FirestoreDatabase database, BuildContext screenContext) {
     final notifications = screenContext.read<NotificationService>();
-    final appInfo = screenContext.read<AppInfo>();
+    // final appInfo = screenContext.read<AppInfo>();
     return () async {
       try {
         if (userInfo.isManager) {
-          throw UnimplementedError('needs implementation'); //TODO: handle
+          throw UnimplementedError('needs implementation');
         } else {
           if (!userInfo.hasPunchcard) {
             await _showNoPunchcardDialog(screenContext);
@@ -199,14 +199,14 @@ class Practice {
     return () async {
       try {
         if (userInfo.isManager) {
-          throw UnimplementedError('needs implementation'); //TODO: handle
+          throw UnimplementedError('needs implementation');
         } else {
           final didRequestUnregister =
               await _promtUnregisterConfirmation(screenContext);
           if (didRequestUnregister) {
             bool shouldRestorePunch = isEnoughTimeLeftToCancel(appInfo);
             database.unregisterFromPracticeTransaction(
-                userInfo, this, shouldRestorePunch);
+                userInfo, this, shouldRestorePunch, appInfo);
           }
         }
       } on Exception catch (_) {
@@ -369,8 +369,7 @@ class Practice {
   _sendNotificationToRegisteredClients(
       BuildContext context, FirestoreDatabase database) async {
     final date = Utils.numericDayMonthYearFromDateTime(startTime);
-    final hour = Utils.hourFromDateTime(startTime);
-    Navigator.of(context).pop();
+    // final hour = Utils.hourFromDateTime(startTime);
     final field = DialogTextField(
         validator: _notificationTextValidator,
         maxLines: 6,
@@ -379,13 +378,14 @@ class Practice {
         await showTextInputDialog(context: context, textFields: [field]);
     if (textList == null || textList.isEmpty) return;
     final notificationText = textList.first;
-    final title = '$name בתאריך $date בשעה $hour';
+    final title = '$name בתאריך $date';
     final sendTo = registeredParticipants;
-    await database.sendNotificationToUsers(sendTo, title, notificationText);
-    // await showOkAlertDialog(
-    //     context: context,
-    //     message: 'ההודעה נשלחה בהצלחה לכל הרשומים',
-    //     title: 'הצלחה');
+    database.sendNotificationToUsers(sendTo, title, notificationText);
+    await showOkAlertDialog(
+        context: context,
+        message: 'ההודעה נשלחה בהצלחה לכל הרשומים',
+        title: 'הצלחה');
+    Navigator.of(context).pop();
   }
 
   String? _notificationTextValidator(String? value) {

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:yoga_house/Canellation/cancellation.dart';
 import 'package:yoga_house/Client/health_assurance.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Practice/practice_template.dart';
@@ -187,12 +188,14 @@ class FirestoreDatabase {
         await _removeUserFromWaitingListTransaction(
             practicePost, userToAdd, transaction);
       }
+      await _sendClientRegisteredAdminNotificationTransaction(
+          userToAddObj, practicePost, transaction);
       return true;
     });
   }
 
   Future<bool> unregisterFromPracticeTransaction(UserInfo userToRemoveObj,
-      Practice practice, bool shouldRestorePunch) async {
+      Practice practice, bool shouldRestorePunch, AppInfo appInfo) async {
     final userInfoRef = _instance.doc(APIPath.userInfo(userToRemoveObj.uid));
     final practiceRef = _instance.doc(APIPath.futurePractice(practice.id));
     return await _instance.runTransaction<bool>((transaction) async {
@@ -216,6 +219,8 @@ class FirestoreDatabase {
       }
       _sendClientCancelledAdminNotificationTransaction(
           userToRemove, practicePre, transaction);
+      _addCancellationTransaction(
+          practice, userToRemoveObj, appInfo, transaction);
       _notifyWaitingListTransaction(practice, transaction);
       return true;
     });
@@ -374,13 +379,7 @@ class FirestoreDatabase {
     final path = isFuturePractice
         ? APIPath.futurePractice(practice.id)
         : APIPath.pastPracticeSingleDoc(practice.startTime);
-    if (!isFuturePractice) {
-      await deleteDocument(path);
-    } else {
-      final registered = practice.registeredParticipants;
-      //TODO notify all registered users of deletion.
-      await deleteDocument(path); // TODO change to transaction
-    }
+    await deleteDocument(path);
   }
 
   Future<List<Practice>> practicesHistoryFuture() async {
@@ -430,12 +429,12 @@ class FirestoreDatabase {
     await reference.set(notification);
   }
 
-  _addAdminNotificationTransaction(
-      String title, String msg, Transaction transaction) async {
-    final reference = _instance.doc(APIPath.newAdminNotification());
-    final notification = {'title': title, 'msg': msg};
-    transaction.set(reference, notification);
-  }
+  // _addAdminNotificationTransaction(
+  //     String title, String msg, Transaction transaction) async {
+  //   final reference = _instance.doc(APIPath.newAdminNotification());
+  //   final notification = {'title': title, 'msg': msg};
+  //   transaction.set(reference, notification);
+  // }
 
   _sendClientCancelledAdminNotificationTransaction(
       UserInfo userInfo, Practice practice, Transaction transaction) {
@@ -469,7 +468,7 @@ class FirestoreDatabase {
 
   Future<void> addHomepageMessage(String msg) async {
     final path = APIPath.newHomepageMessage();
-    return _instance.doc(path).set({'msg': msg});
+    return _instance.doc(path).set({'title': 'Yoga House', 'msg': msg});
   }
 
   sendNotificationToUsers(List<UserInfo> sendTo, String title, String msg) {
@@ -489,10 +488,10 @@ class FirestoreDatabase {
     });
   }
 
-  _sendNotificationToUserTransaction(DocumentReference ref,
-      NotificationData notification, Transaction transaction) {
-    transaction.set(ref, notification.toMap());
-  }
+  // _sendNotificationToUserTransaction(DocumentReference ref,
+  //     NotificationData notification, Transaction transaction) {
+  //   transaction.set(ref, notification.toMap());
+  // }
 
   Future<void> editPractice(Practice practice, String name, String location,
       DateTime startTime) async {
@@ -587,5 +586,29 @@ class FirestoreDatabase {
     final practiceRef = _instance.doc(practicePath);
     final practicePost = practice.withUserRemovedFromWaitingList(user);
     transaction.update(practiceRef, practicePost.toMap());
+  }
+
+  void _addCancellationTransaction(Practice practice, UserInfo user,
+      AppInfo appInfo, Transaction transaction) {
+    final cancellationRef =
+        _instance.doc(APIPath.newUserCancellation(user.uid));
+    final cancellation = Cancellation(DateTime.now(), practice,
+        practice.startTime, practice.isEnoughTimeLeftToCancel(appInfo));
+    transaction.set(cancellationRef, cancellation.toMap());
+  }
+
+  Future<List<Cancellation>> cancellationsFuture(String uid) async {
+    final collectionPath = APIPath.userCancellationsCollection(uid);
+    final ref = _instance.collection(collectionPath);
+    final data = await ref.get();
+    final docsSnapshot = data.docs;
+    final allCancellations = <Cancellation>[];
+    for (var snapshot in docsSnapshot) {
+      final cancellation = snapshot.data();
+      final canc = Cancellation.fromMap(cancellation);
+      allCancellations.add(canc);
+    }
+
+    return allCancellations;
   }
 }

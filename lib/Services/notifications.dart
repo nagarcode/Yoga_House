@@ -17,11 +17,8 @@ class NotificationService {
   NotificationService(this.database);
 
   static const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'yoga_house_channel',
-      'yoga_house_channel',
-      'yoga_house_channel', //TODO. make sure i send to this channel
-      importance: Importance.high,
-      playSound: true);
+      'yoga_house_channel', 'yoga_house_channel', 'yoga_house_channel',
+      importance: Importance.high, playSound: true);
 
   static showNotification(RemoteMessage message) {
     const androidDetails = AndroidNotificationDetails(
@@ -62,7 +59,7 @@ class NotificationService {
         icon: '@mipmap/launcher_icon',
         importance: Importance.max,
         priority: Priority.high);
-    final ios = IOSNotificationDetails();
+    const ios = IOSNotificationDetails();
     FirebaseMessaging.onMessage.listen(
       (message) {
         final notification = message.notification;
@@ -73,7 +70,7 @@ class NotificationService {
               notification.hashCode,
               notification.title,
               notification.body,
-              NotificationDetails(android: androidDetails, iOS: ios));
+              const NotificationDetails(android: androidDetails, iOS: ios));
         }
       },
     );
@@ -133,7 +130,7 @@ class NotificationService {
     return withHunnid + toConcat;
   }
 
-  Future setPracticeLocalNotification(
+  Future<void> setPracticeLocalNotification(
       Practice practice, int hoursBeforeToAlert) async {
     if (!practice.startTime
         .isAfter(DateTime.now().add(Duration(hours: hoursBeforeToAlert)))) {
@@ -150,7 +147,8 @@ class NotificationService {
         .subtract(Duration(hours: hoursBeforeToAlert));
     final title = practice.name;
     final hour = DateFormat.Hm().format(practice.startTime);
-    final body = 'תזכורת ל${practice.name} מחר ב$hour, נתראה :)';
+    final body =
+        'תזכורת ל${practice.name} מחר ב$hour, במידה ואינך מתכוון להגיע אנא לבטל לפחות 12 שעות לפני. נתראה :)';
     await _plugin.zonedSchedule(
         idFromStartTime(practice.startTime), title, body, date, platform,
         uiLocalNotificationDateInterpretation:

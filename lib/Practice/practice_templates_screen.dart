@@ -103,7 +103,7 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
                 _maxParticipantsInput(ctx, labelStyle),
               ],
               confirmText: 'הוסף שיעור',
-              onConfirmed: () => _submitForm(ctx),
+              onConfirmed: _isLoading ? () {} : () => _submitForm(ctx),
               innerCtx: ctx,
               style: style!,
               formKey: _formKey,

@@ -118,9 +118,7 @@ class _HomepageTextScreenState extends State<HomepageTextScreen> {
     }
     final shouldSend = await _didConfirm(notificationType.singleNotification);
     if (!shouldSend) return;
-    //TODO implement
-
-    // await widget.database.addHomepageMessage(_notificationTextController.text);
+    await widget.database.addHomepageMessage(_notificationTextController.text);
     Navigator.of(context).pop();
   }
 

@@ -66,10 +66,11 @@ class _PracticeCardState extends State<PracticeCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(text),
-          if (expand) _usersListView(),
+          if (expand && widget.managerView) _usersListView(),
+          if (expand && !widget.managerView) descriptionView(),
         ],
       ),
-      onTap: widget.managerView ? _toggleExpand : null,
+      onTap: _toggleExpand,
     );
   }
 
@@ -146,8 +147,12 @@ class _PracticeCardState extends State<PracticeCard> {
   _usersListView() {
     final theme = Theme.of(context);
     final users = widget.data.registeredParticipants;
-    final rows = <Widget>[];
-    if (users.isEmpty) return const Text('טרם נרשמו מתאמנים לשיעור זה');
+    final desc = widget.data.description;
+    var descText =
+        Text(desc, style: theme.textTheme.subtitle1!.copyWith(fontSize: 15));
+    const registeredText = Text('רשומים:');
+    final rows = <Widget>[descText, registeredText];
+    if (users.isEmpty) return Text(desc + '\n' + 'טרם נרשמו מתאמנים לשיעור זה');
     for (var user in users) {
       final tile = ListTile(
         dense: true,
@@ -157,14 +162,15 @@ class _PracticeCardState extends State<PracticeCard> {
       );
       rows.add(tile);
     }
-    return Column(
-      children: [
-        const Text('רשומים:'),
-        ListView(
-          shrinkWrap: true,
-          children: rows,
-        ),
-      ],
+    return ListView(
+      shrinkWrap: true,
+      children: rows,
     );
+  }
+
+  descriptionView() {
+    final theme = Theme.of(context);
+    return Text(widget.data.description,
+        style: theme.textTheme.subtitle1!.copyWith(fontSize: 15));
   }
 }

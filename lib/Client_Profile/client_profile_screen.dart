@@ -7,49 +7,61 @@ import 'package:yoga_house/User_Info/user_info.dart';
 import 'package:yoga_house/common_widgets/punch_card_view.dart';
 
 class ClientProfileScreen extends StatefulWidget {
-  final UserInfo userInfo;
+  final String uid;
   final FirestoreDatabase database;
   final bool isManagerView;
+  final List<UserInfo> allUsers;
 
-  static Future<void> pushToTabBar(
-      BuildContext context, UserInfo userInfo, bool isManagerView) async {
+  static Future<void> pushToTabBar(BuildContext context, String uid,
+      bool isManagerView, List<UserInfo> allUsers) async {
     final database = context.read<FirestoreDatabase>();
     await pushNewScreen(
       context,
       screen: ClientProfileScreen(
         database: database,
-        userInfo: userInfo,
+        uid: uid,
         isManagerView: isManagerView,
+        allUsers: allUsers,
       ),
     );
   }
 
-  const ClientProfileScreen(
-      {Key? key,
-      required this.userInfo,
-      required this.database,
-      required this.isManagerView})
-      : super(key: key);
+  const ClientProfileScreen({
+    Key? key,
+    required this.uid,
+    required this.database,
+    required this.isManagerView,
+    required this.allUsers,
+  }) : super(key: key);
 
   @override
-  _ClientProfileScreenState createState() => _ClientProfileScreenState();
+  State<ClientProfileScreen> createState() => _ClientProfileScreenState();
 }
 
 class _ClientProfileScreenState extends State<ClientProfileScreen> {
+  late UserInfo userInfo;
+  @override
+  void initState() {
+    userInfo =
+        widget.allUsers.firstWhere((element) => element.uid == widget.uid);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // print(userInfo);
     return Scaffold(
       appBar: AppBar(title: Utils.appBarTitle(context, 'פרופיל מתאמן')),
       body: Column(
         children: [
-          _buildInfoCard(),
-          _buildPunchCard(),
+          _buildInfoCard(userInfo, context),
+          _buildPunchCard(userInfo, context),
         ],
       ),
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(UserInfo userInfo, BuildContext context) {
     final theme = Theme.of(context);
     return SizedBox(
       // height: 240,
@@ -62,20 +74,20 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
             children: [
               ListTile(
                 leading: Icon(Icons.person, color: theme.colorScheme.primary),
-                title: Text(widget.userInfo.name),
+                title: Text(userInfo.name),
               ),
               ListTile(
                 leading: Icon(Icons.phone, color: theme.colorScheme.primary),
                 title: widget.isManagerView
                     ? Text(Utils.stripPhonePrefix(
-                        widget.userInfo.phoneNumber + ' (לחץ להתקשר)'))
-                    : Text(Utils.stripPhonePrefix(widget.userInfo.phoneNumber)),
-                onTap: () => Utils.call(widget.userInfo.phoneNumber, context),
+                        userInfo.phoneNumber + ' (לחץ להתקשר)'))
+                    : Text(Utils.stripPhonePrefix(userInfo.phoneNumber)),
+                onTap: () => Utils.call(userInfo.phoneNumber, context),
               ),
               ListTile(
                 leading: Icon(Icons.email_outlined,
                     color: theme.colorScheme.primary),
-                title: Text(widget.userInfo.email),
+                title: Text(userInfo.email),
                 // onTap: () => {},
               ),
             ],
@@ -83,9 +95,9 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     );
   }
 
-  Widget _buildPunchCard() {
+  Widget _buildPunchCard(UserInfo userInfo, BuildContext context) {
     final theme = Theme.of(context);
-    final punchCard = widget.userInfo.punchcard;
+    final punchCard = userInfo.punchcard;
     if (punchCard == null) {
       return Text('אין לך כרטיסיה. לרכישה אנא צור קשר.',
           textAlign: TextAlign.center, style: theme.textTheme.bodyText1);
@@ -93,10 +105,20 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       return PunchcardView(
         punchcard: punchCard,
         isManagerView: widget.isManagerView,
-        decrementCallback: () =>
-            widget.userInfo.decrementPunchcard(widget.database, context),
-        incrementCallback: () =>
-            widget.userInfo.incrementPunchcard(widget.database, context),
+        decrementCallback: () async {
+          final newPunchcard =
+              await userInfo.decrementPunchcard(widget.database, context);
+          setState(() {
+            this.userInfo = userInfo.copyWith(punchCard: newPunchcard);
+          });
+        },
+        incrementCallback: () async {
+          final newPunchcard =
+              await userInfo.incrementPunchcard(widget.database, context);
+          setState(() {
+            this.userInfo = userInfo.copyWith(punchCard: newPunchcard);
+          });
+        },
       );
     }
   }

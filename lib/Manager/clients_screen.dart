@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:yoga_house/Client/health_assurance_screen.dart';
+import 'package:yoga_house/Client/register_to_practice_screen.dart';
 import 'package:yoga_house/Client_Profile/client_profile_screen.dart';
 import 'package:yoga_house/Client_Profile/punch_card_history_screen.dart';
+import 'package:yoga_house/Manager/Management_Screens/cancellation_history_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/practices_history_screen.dart';
 import 'package:yoga_house/Manager/new_punchcard_form.dart';
 import 'package:yoga_house/Manager/search_widget.dart';
@@ -24,7 +25,7 @@ class ClientsScreen extends StatefulWidget {
 class _ClientsScreenState extends State<ClientsScreen> {
   late Stream<List<UserInfo>> allUsersInfoStream;
   late List<UserInfo>? usersToDisplay;
-  late List<UserInfo> allUsers;
+  // late List<UserInfo> allUsers;
   String query = '';
 
   @override
@@ -36,37 +37,40 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Utils.appBarTitle(context, 'מתאמנים')),
-      body: StreamBuilder<List<UserInfo>>(
-          stream: allUsersInfoStream,
-          builder: (context, allUsersInfoSnapshot) {
-            if (Utils.connectionStateInvalid(allUsersInfoSnapshot)) {
-              return const SplashScreen();
-            }
-            final data = allUsersInfoSnapshot.data;
-            if (data == null) return const SplashScreen();
-            allUsers = data;
-            if (usersToDisplay == null || usersToDisplay!.isEmpty) {
-              usersToDisplay = allUsers;
-            }
-            return Column(
-              children: [
-                _buildSearch(),
-                _buildList(),
-              ],
-            );
-          }),
+    return StreamBuilder<List<UserInfo>>(
+      stream: allUsersInfoStream,
+      builder: (context, allUsersInfoSnapshot) {
+        var allUsers = <UserInfo>[];
+        if (Utils.connectionStateInvalid(allUsersInfoSnapshot)) {
+          return const SplashScreen();
+        }
+        final data = allUsersInfoSnapshot.data;
+        if (data == null) return const SplashScreen();
+        allUsers = data;
+        if (usersToDisplay == null || usersToDisplay!.isEmpty) {
+          usersToDisplay = allUsers;
+        }
+        // print(allUsers.first.punchcard?.punchesRemaining);
+        return Scaffold(
+          appBar: AppBar(title: Utils.appBarTitle(context, 'מתאמנים')),
+          body: Column(
+            children: [
+              _buildSearch(allUsers),
+              _buildList(allUsers),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  _buildSearch() => SearchWidget(
+  _buildSearch(List<UserInfo> allUsers) => SearchWidget(
         text: query,
         hintText: 'חיפוש לפי שם או טלפון',
-        onChanged: _searchUser,
+        onChanged: (query) => _searchUser(query, allUsers),
       );
 
-  _buildList() {
+  _buildList(List<UserInfo> allUsers) {
     final usrsTodspl = usersToDisplay;
     if (usrsTodspl == null) {
       return const SplashScreen();
@@ -83,11 +87,11 @@ class _ClientsScreenState extends State<ClientsScreen> {
         itemCount: usrsTodspl.length,
         itemBuilder: (context, index) {
           final user = usrsTodspl[index];
-          return _buildUser(user);
+          return _buildUser(user, allUsers);
         });
   }
 
-  Widget _buildUser(UserInfo user) {
+  Widget _buildUser(UserInfo user, List<UserInfo> allUsers) {
     final theme = Theme.of(context);
     return ListTile(
       leading: Icon(
@@ -96,21 +100,20 @@ class _ClientsScreenState extends State<ClientsScreen> {
       ),
       title: Text(user.name),
       subtitle: Text(Utils.stripPhonePrefix(user.phoneNumber)),
-      onTap: () => _showChoiceDialog(user),
+      onTap: () => _showChoiceDialog(user, allUsers),
     );
   }
 
-  _showChoiceDialog(UserInfo userInfo) async {
+  _showChoiceDialog(UserInfo userInfo, List<UserInfo> allUsers) async {
     await showDialog(
         context: context,
         builder: (context) => Utils.cardSelectionDialog(
-            context, _choiceTiles(context, userInfo)));
+            context, _choiceTiles(context, userInfo, allUsers)));
   }
 
   List<CardSelectionTile> _choiceTiles(
-      BuildContext innerContext, UserInfo userInfo) {
+      BuildContext innerContext, UserInfo userInfo, List<UserInfo> allUsers) {
     final theme = Theme.of(innerContext);
-
     return [
       CardSelectionTile(
         innerContext,
@@ -118,7 +121,17 @@ class _ClientsScreenState extends State<ClientsScreen> {
         Icon(Icons.person, color: theme.colorScheme.primary),
         (cardContext) async {
           Navigator.of(cardContext).pop();
-          await ClientProfileScreen.pushToTabBar(context, userInfo, true);
+          await ClientProfileScreen.pushToTabBar(
+              context, userInfo.uid, true, allUsers);
+        },
+      ),
+      CardSelectionTile(
+        innerContext,
+        'נהל רישום לשיעורים',
+        Icon(Icons.add, color: theme.colorScheme.primary),
+        (cardContext) async {
+          Navigator.of(cardContext).pop();
+          await RegisterToPracticeScreen.pushToTabBar(context, false, userInfo);
         },
       ),
       CardSelectionTile(
@@ -160,6 +173,15 @@ class _ClientsScreenState extends State<ClientsScreen> {
       ),
       CardSelectionTile(
         innerContext,
+        'היסטוריית ביטולים',
+        Icon(Icons.auto_delete_outlined, color: theme.colorScheme.primary),
+        (cardContext) async {
+          Navigator.of(cardContext).pop();
+          await CancellationHistoryScreen.pushToTabBar(context, userInfo);
+        },
+      ),
+      CardSelectionTile(
+        innerContext,
         'הוסף כרטיסיה',
         Icon(Icons.card_membership_outlined, color: theme.colorScheme.primary),
         (cardContext) async {
@@ -170,7 +192,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
     ];
   }
 
-  void _searchUser(String query) {
+  void _searchUser(String query, List<UserInfo> allUsers) {
     final newUsersToDisplay = allUsers.where((user) {
       final phone = user.phoneNumber;
       return user.name.contains(query) ||

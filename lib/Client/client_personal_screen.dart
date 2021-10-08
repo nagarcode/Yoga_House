@@ -3,7 +3,6 @@ import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:yoga_house/Client/health_assurance_screen.dart';
-import 'package:yoga_house/Client/register_to_practice_screen.dart';
 import 'package:yoga_house/Client_Profile/client_profile_screen.dart';
 import 'package:yoga_house/Client_Profile/punch_card_history_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/practices_history_screen.dart';
@@ -90,7 +89,8 @@ class _ClientPersonalScreenState extends State<ClientPersonalScreen> {
           leading: Icon(Icons.card_membership_outlined, color: iconColor),
           titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onPressed: (context) async {
-            await ClientProfileScreen.pushToTabBar(context, widget.user, false);
+            await ClientProfileScreen.pushToTabBar(
+                context, widget.user.uid, false, [widget.user]);
           },
         ),
         SettingsTile(
@@ -127,7 +127,7 @@ class _ClientPersonalScreenState extends State<ClientPersonalScreen> {
   }
 
   _tomerSection() {
-    final appInfo = context.read<AppInfo>();
+    // final appInfo = context.read<AppInfo>();
     final iconColor = Theme.of(context).colorScheme.primary;
     final theme = Theme.of(context);
     return SettingsSection(

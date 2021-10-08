@@ -8,7 +8,6 @@ import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
 
 class HealthAssuranceScreen extends StatefulWidget {
-  //TODO: if user only has one, tell them then ask wheter they would like to file a new one.
   final UserInfo userInfo;
   final FirestoreDatabase database;
 
@@ -445,45 +444,47 @@ class _HealthAssuranceScreenState extends State<HealthAssuranceScreen> {
 
   Widget _submitButton() {
     return ElevatedButton(
-        onPressed: () async {
-          _setIsLoading(true);
-          if (_formKey.currentState!.validate()) {
-            final numOfBirths = this.numOfBirths;
-            final age = this.age;
-            if (numOfBirths == null || age == null) return;
-            final healthAssurance = HealthAssurance(
-                bloodPressure: bloodPressure,
-                diabetes: diabetes,
-                headachesDizzinessWeakness: headachesDizzinessWeakness,
-                astma: astma,
-                balance: balance,
-                neck: neck,
-                wrist: wrist,
-                spine: spine,
-                digestion: digestion,
-                ears: ears,
-                eyes: eyes,
-                chronicStuff: chronicStuff,
-                surgery: surgery,
-                smoking: smoking,
-                calcium: calcium,
-                pregnant: pregnant,
-                pregnantStuff: pregnantStuff,
-                numOfBirths: numOfBirths,
-                periodProblems: periodProblems,
-                notes: notes,
-                name: name,
-                phone: phone,
-                address: address,
-                age: age,
-                email: email,
-                date: date);
-            await widget.database
-                .setHealthAssurance(widget.userInfo, healthAssurance);
-          } else {
-            _setIsLoading(false);
-          }
-        },
+        onPressed: _isLoading
+            ? null
+            : () async {
+                _setIsLoading(true);
+                if (_formKey.currentState!.validate()) {
+                  final numOfBirths = this.numOfBirths;
+                  final age = this.age;
+                  if (numOfBirths == null || age == null) return;
+                  final healthAssurance = HealthAssurance(
+                      bloodPressure: bloodPressure,
+                      diabetes: diabetes,
+                      headachesDizzinessWeakness: headachesDizzinessWeakness,
+                      astma: astma,
+                      balance: balance,
+                      neck: neck,
+                      wrist: wrist,
+                      spine: spine,
+                      digestion: digestion,
+                      ears: ears,
+                      eyes: eyes,
+                      chronicStuff: chronicStuff,
+                      surgery: surgery,
+                      smoking: smoking,
+                      calcium: calcium,
+                      pregnant: pregnant,
+                      pregnantStuff: pregnantStuff,
+                      numOfBirths: numOfBirths,
+                      periodProblems: periodProblems,
+                      notes: notes,
+                      name: name,
+                      phone: phone,
+                      address: address,
+                      age: age,
+                      email: email,
+                      date: date);
+                  await widget.database
+                      .setHealthAssurance(widget.userInfo, healthAssurance);
+                } else {
+                  _setIsLoading(false);
+                }
+              },
         child: const Text('שלח'));
   }
 

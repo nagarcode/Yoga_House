@@ -1,4 +1,3 @@
-import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +7,6 @@ import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Practice/practice_card.dart';
 import 'package:yoga_house/Services/api_path.dart';
 import 'package:yoga_house/Services/app_info.dart';
-import 'package:yoga_house/Services/auth.dart';
 import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
@@ -61,43 +59,34 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
     );
   }
 
-  Widget get _registerToPracticeButton => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 8),
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
-          ),
-          child: const Text(
-            'רישום לשיעור',
-            style: TextStyle(fontSize: 20),
-          ),
-          onPressed: () async {
-            await RegisterToPracticeScreen.pushToTabBar(context, false);
-          },
+  Widget get _registerToPracticeButton {
+    final userInfo = context.read<UserInfo>();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 8),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
         ),
-      );
+        child: const Text(
+          'רישום לשיעור',
+          style: TextStyle(fontSize: 20),
+        ),
+        onPressed: () async {
+          await RegisterToPracticeScreen.pushToTabBar(context, false, userInfo);
+        },
+      ),
+    );
+  }
 
   Widget _logo() {
     return SizedBox(
-        height: 140,
-        width: 50,
+        height: 230,
+        // width: 50,
         child: Image.asset(
           APIPath.logo(),
           fit: BoxFit.cover,
         ));
-  }
-
-  void _signOut() async {
-    final auth = context.read<AuthBase>();
-    final didRequestLeave = await showOkCancelAlertDialog(
-        context: context,
-        isDestructiveAction: true,
-        okLabel: 'התנתק',
-        cancelLabel: 'ביטול',
-        title: 'התנתקות',
-        message: 'האם להתנתק מהמערכת?');
-    if (didRequestLeave == OkCancelResult.ok) auth.signOut();
   }
 
   _homepageText(ThemeData theme, AppInfo appInfo) {
@@ -112,31 +101,6 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
       ),
     );
   }
-
-  // ListView _registeredPracticesListView() {
-  //   return ListView(
-  //     shrinkWrap: true,
-  //     children: _practiceCards(),
-  //   );
-  // }
-
-  // List<PracticeCard> _practiceCards() {
-  //   final userInfo = context.read<UserInfo>();
-  //   final cards = <PracticeCard>[];
-  //   for (var practice in widget.practicesRegisteredTo) {
-  //     cards.add(
-  //       PracticeCard(
-  //           data: practice,
-  //           registerCallback: practice.registerToPracticeCallback(
-  //               userInfo, widget.database, context),
-  //           waitingListCallback: () {},
-  //           isRegistered: true,
-  //           unregisterCallback: practice.unregisterFromPracticeCallback(
-  //               userInfo, widget.database, context)), //TODO change
-  //     );
-  //   }
-  //   return cards;
-  // }
 
   Widget _practiceCardsListView() {
     return GroupedListView<Practice, String>(

@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 class CustomButton extends StatelessWidget {
   final String msg;
   final void Function()? onTap;
-  Color? color;
+  final Color? color;
 
-  CustomButton({Key? key, required this.msg, required this.onTap, Color? color})
+  const CustomButton(
+      {Key? key, required this.msg, required this.onTap, required this.color})
       : super(key: key);
   @override
   Widget build(BuildContext context) {

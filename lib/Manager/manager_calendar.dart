@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -28,9 +30,10 @@ class ManagerCalendar extends StatefulWidget {
 
 class _ManagerCalendarState extends State<ManagerCalendar> {
   late GlobalKey<FormBuilderState> _formKey, _durationFormKey, _dateFormKey;
-  late String _name, _description, _lvl, _location, _managerName, _managerUID;
+  String? _name, _description, _lvl, _location, _managerName, _managerUID;
   DateTime? _startTime;
-  late int _maxParticipants, _durationMinutes;
+  int? _maxParticipants;
+  late int _durationMinutes;
   late bool _isLoading,
       _didChooseDate,
       _shouldPromtDuration,
@@ -49,6 +52,12 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
     _shouldPromtDuration = false;
     _shouldPromtDetails = false;
     _durationMinutes = 0;
+    // _name = null;
+    // _description = null;
+    // _lvl = ;
+    // _location = '';
+    // _managerName = '';
+    // _managerUID = '';
     super.initState();
   }
 
@@ -91,7 +100,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
 
   void _tappedEmptySlot(CalendarTapDetails tapDetails) async {
     _startTime = tapDetails.date;
-    final choice = await showDialog<ManagerAction>(
+    await showDialog<ManagerAction>(
         context: context, builder: (context) => _emptySlotTapDialog(context));
   }
 
@@ -121,7 +130,11 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
   }
 
   _choseInsertNewWorkout(BuildContext context) async {
+    final style = Theme.of(context).textTheme.headline6;
+    final labelStyle = Theme.of(context).textTheme.subtitle2;
     Navigator.of(context).pop(ManagerAction.insertNewWorkout);
+    _initTraineDetails(); // single trainer for now
+    _promtDetails(context, style!, labelStyle!);
   }
 
   _choseInsertWorkoutFromTemplate(BuildContext context) async {
@@ -315,7 +328,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
   _maxParticipantsInput(BuildContext ctx, TextStyle labelStyle) {
     const maxChars = 3;
     return FormBuilderTextField(
-      initialValue: _maxParticipants.toString(),
+      initialValue: _maxParticipants?.toString(),
       maxLength: maxChars,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       name: 'maxParticipants',
@@ -462,22 +475,33 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
   _createAndPersistPractice() async {
     final userInfo = context.read<UserInfo>();
     final endTime = _startTime!.add(Duration(minutes: _durationMinutes));
+    final name = _name;
+    final lvl = _lvl;
+    final description = _description;
+    final location = _location;
+    final maxParticipants = _maxParticipants;
+    if (name == null ||
+        lvl == null ||
+        description == null ||
+        location == null ||
+        maxParticipants == null) return;
     final practice = Practice(
       Utils.idFromTime(),
-      _name,
-      _lvl,
+      name,
+      lvl,
       userInfo.name,
       userInfo.uid,
-      _description,
-      _location,
+      description,
+      location,
       _startTime!,
       endTime,
-      _maxParticipants,
+      maxParticipants,
       [],
       0,
       [],
     );
     await widget.database.addPractice(practice);
+    _resetFields();
   }
 
   DateTime _getStartTime() {
@@ -517,6 +541,20 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
     final practices = context.read<List<Practice>>();
     final practice = practices.firstWhere((element) => element.id == id);
     return practice;
+  }
+
+  void _resetFields() {
+    _name = null;
+    _description = null;
+    _lvl = null;
+    _location = null;
+    _startTime = null;
+    _maxParticipants = null;
+    _durationMinutes = 0;
+    _isLoading = false;
+    _didChooseDate = false;
+    _shouldPromtDuration = false;
+    _shouldPromtDetails = false;
   }
 }
 

@@ -56,7 +56,7 @@ class _NewPunchcardFormState extends State<NewPunchcardForm> {
     return Utils.bottomSheetFormBuilder(
         inputFields: _inputFields(),
         confirmText: 'הוסף כרטיסיה',
-        onConfirmed: _submitForm,
+        onConfirmed: _isLoading ? () {} : _submitForm,
         innerCtx: context,
         style: style!,
         formKey: _formKey,

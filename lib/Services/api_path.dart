@@ -39,9 +39,15 @@ class APIPath {
   static String newHealthAssuranceInHistory(String uid) =>
       'users/$uid/Health_Assurance_History/${DateTime.now()}';
 
+  static String newUserCancellation(String uid) =>
+      'users/$uid/Cancellation_History/${DateTime.now()}';
+
+  static String userCancellationsCollection(String uid) =>
+      'users/$uid/Cancellation_History';
+
   //Assets:
 
-  static String logo() => 'assets/images/cropped_logo.png';
+  static String logo() => 'assets/images/logo.jpeg';
 
 //Notifications:
 

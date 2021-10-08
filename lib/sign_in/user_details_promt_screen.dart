@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
 import 'package:yoga_house/Services/auth.dart';
 import 'package:yoga_house/Services/database.dart';
-import 'package:yoga_house/Services/shared_prefs.dart';
-
 import 'package:yoga_house/common_widgets/custom_button.dart';
-import 'package:yoga_house/landing.dart';
 
 class UserDetailsPromtScreen extends StatefulWidget {
   final AuthBase auth;
@@ -99,8 +94,9 @@ class _UserDetailsPromtScreenState extends State<UserDetailsPromtScreen> {
   }
 
   _setNameButton() {
-    final sharedPrefs = context.read<SharedPrefs>();
+    // final sharedPrefs = context.read<SharedPrefs>();
     return CustomButton(
+        color: null,
         msg: "המשך",
         onTap: isLoading
             ? null
@@ -117,12 +113,12 @@ class _UserDetailsPromtScreenState extends State<UserDetailsPromtScreen> {
                     user.phoneNumber,
                     email.text);
                 // _setIsLoading(false);
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (context) => LandingPage(
-                    sharedPrefs,
-                    skipNameCheck: true,
-                  ),
-                ));
+                // Navigator.of(context).pushReplacement(MaterialPageRoute(
+                //   builder: (context) => LandingPage(
+                //     sharedPrefs,
+                //     skipNameCheck: true,
+                //   ),
+                // ));
               });
   }
 

@@ -166,26 +166,40 @@ class UserInfo {
     }
   }
 
-  Future<void> incrementPunchcard(
+  Future<Punchcard> incrementPunchcard(
       FirestoreDatabase database, BuildContext context) async {
     final didSucceed = await database.incrementPunchcard(this);
     final title = didSucceed ? 'הצלחה' : 'כישלון';
     final msg = didSucceed
         ? 'ניקוב נוסף בהצלחה'
         : 'לא ניתן היה להשלים את הפעולה. אנא נסה שוב';
-    showOkAlertDialog(
+    await showOkAlertDialog(
         context: context, title: title, message: msg, okLabel: 'אישור');
+    final punchcard = this.punchcard;
+    if (punchcard == null) throw Exception('שגיאה');
+    if (didSucceed) {
+      return punchcard.copyWithIncrementPunches();
+    } else {
+      return punchcard;
+    }
   }
 
-  Future<void> decrementPunchcard(
+  Future<Punchcard> decrementPunchcard(
       FirestoreDatabase database, BuildContext context) async {
     final didSucceed = await database.decrementPunchcard(this);
     final title = didSucceed ? 'הצלחה' : 'כישלון';
     final msg = didSucceed
         ? 'ניקוב ירד בהצלחה'
         : 'לא ניתן היה להשלים את הפעולה. אנא נסה שוב';
-    showOkAlertDialog(
+    await showOkAlertDialog(
         context: context, title: title, message: msg, okLabel: 'אישור');
+    final punchcard = this.punchcard;
+    if (punchcard == null) throw Exception('שגיאה');
+    if (didSucceed) {
+      return punchcard.copyWithDecrementPunches();
+    } else {
+      return punchcard;
+    }
   }
 
   UserInfo copyWithDecrementedPunch() {

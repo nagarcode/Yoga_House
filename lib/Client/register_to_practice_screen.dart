@@ -12,15 +12,18 @@ import 'package:yoga_house/User_Info/user_info.dart';
 
 class RegisterToPracticeScreen extends StatefulWidget {
   final bool managerView;
-  const RegisterToPracticeScreen({Key? key, required this.managerView})
+  final UserInfo userInfo;
+  const RegisterToPracticeScreen(
+      {Key? key, required this.managerView, required this.userInfo})
       : super(key: key);
 
   static Future<void> pushToTabBar(
-      BuildContext context, bool managerView) async {
+      BuildContext context, bool managerView, UserInfo userInfo) async {
     await pushNewScreen(
       context,
       // ignore: prefer_const_constructors
-      screen: RegisterToPracticeScreen(managerView: managerView),
+      screen: RegisterToPracticeScreen(
+          managerView: managerView, userInfo: userInfo),
     );
   }
 
@@ -63,22 +66,22 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
 
   Widget _itemBuilder(BuildContext listContext, Practice practice) {
     final appInfo = context.read<AppInfo>();
-    final userInfo = context.read<UserInfo>();
+
     final database = context.read<FirestoreDatabase>();
     return PracticeCard(
-      isInWaitingList: practice.isInWaitingList(userInfo),
+      isInWaitingList: practice.isInWaitingList(widget.userInfo),
       isHistory: false,
       database: database,
       managerView: widget.managerView,
       data: practice,
-      registerCallback:
-          practice.registerToPracticeCallback(userInfo, database, context),
+      registerCallback: practice.registerToPracticeCallback(
+          widget.userInfo, database, context),
       waitingListCallback: () {
-        _waitingListCallback(practice, userInfo, database);
+        _waitingListCallback(practice, widget.userInfo, database);
       },
-      isRegistered: practice.isUserRegistered(userInfo.uid),
+      isRegistered: practice.isUserRegistered(widget.userInfo.uid),
       unregisterCallback: practice.unregisterFromPracticeCallback(
-          userInfo, database, context, appInfo),
+          widget.userInfo, database, context, appInfo),
     );
   }
 
@@ -104,10 +107,8 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
   _waitingListCallback(
       Practice practice, UserInfo userInfo, FirestoreDatabase database) {
     if (practice.isInWaitingList(userInfo)) {
-      print('in waiting list');
       practice.leaveWaitingList(database, userInfo);
     } else {
-      print('not in waiting list');
       practice.joinWaitingList(database, userInfo, context);
     }
   }

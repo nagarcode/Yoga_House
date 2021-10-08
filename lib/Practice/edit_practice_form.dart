@@ -53,7 +53,7 @@ class _EditPracticeFormState extends State<EditPracticeForm> {
     return Utils.bottomSheetFormBuilder(
         inputFields: _inputFields(),
         confirmText: 'אישור',
-        onConfirmed: _submitForm,
+        onConfirmed: _isLoading ? () {} : _submitForm,
         innerCtx: context,
         style: style!,
         formKey: _formKey,

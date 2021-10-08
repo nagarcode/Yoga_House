@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:yoga_house/Client/register_to_practice_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/homepage_message_screen.dart';
@@ -7,6 +8,7 @@ import 'package:yoga_house/Manager/Management_Screens/notifications_settings.dar
 import 'package:yoga_house/Manager/Management_Screens/practices_history_screen.dart';
 import 'package:yoga_house/Practice/practice_templates_screen.dart';
 import 'package:yoga_house/Services/utils_file.dart';
+import 'package:yoga_house/User_Info/user_info.dart';
 
 class ManagementScreen extends StatefulWidget {
   const ManagementScreen({Key? key}) : super(key: key);
@@ -40,6 +42,7 @@ class _ManagementScreenState extends State<ManagementScreen> {
   }
 
   SettingsSection _managementSection() {
+    final userInfo = context.read<UserInfo>();
     final iconColor = Theme.of(context).colorScheme.primary;
     final theme = Theme.of(context);
     return SettingsSection(
@@ -51,7 +54,8 @@ class _ManagementScreenState extends State<ManagementScreen> {
           leading: Icon(Icons.run_circle_outlined, color: iconColor),
           titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onPressed: (context) async {
-            await RegisterToPracticeScreen.pushToTabBar(context, true);
+            await RegisterToPracticeScreen.pushToTabBar(
+                context, true, userInfo);
           },
         ),
         SettingsTile(

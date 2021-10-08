@@ -96,7 +96,7 @@ class _PracticesHistoryScreenState extends State<PracticesHistoryScreen> {
       managerView: true,
       data: practice,
       registerCallback: () {},
-      waitingListCallback: () {}, //TODO change
+      waitingListCallback: () {},
       isRegistered: false,
       unregisterCallback: () {},
     );
