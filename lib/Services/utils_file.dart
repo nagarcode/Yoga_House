@@ -117,6 +117,16 @@ class Utils {
     );
   }
 
+  static void launchInstagram(String url, BuildContext context) async {
+    await canLaunch(url)
+        ? await launch(url)
+        : _showCantLaunchDialog('לא ניתן לבצע את הפעולה', context);
+  }
+
+  static String yuvishPhoneNoPrefix() => '0526424442';
+
+  static String adminInstagramUrl() => 'https://instagram.com/yuval.giat';
+
   static String idFromTime() => DateTime.now().toIso8601String();
 
   static String idFromPastTime(DateTime time) => time.toIso8601String();
@@ -139,4 +149,6 @@ class Utils {
 
   static String hebNumericMonthYear(DateTime date) =>
       DateFormat.yMMM('he_IL').format(date);
+
+  static String appOneLink() => 'http://onelink.to/yoga_house';
 }

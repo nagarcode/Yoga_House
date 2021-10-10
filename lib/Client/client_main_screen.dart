@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:provider/provider.dart';
+import 'package:yoga_house/Client/contact_button_grid.dart';
 import 'package:yoga_house/Client/health_assurance_screen.dart';
 import 'package:yoga_house/Client/register_to_practice_screen.dart';
 import 'package:yoga_house/Practice/practice.dart';
@@ -50,8 +51,12 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
               if (widget.practicesRegisteredTo.isNotEmpty)
                 _practiceCardsListView(),
               userInfo.didSubmitHealthAssurance
-                  ? SizedBox(height: 60, child: _registerToPracticeButton)
+                  ? SizedBox(height: 55, child: _registerToPracticeButton)
                   : _haColumn(userInfo, theme),
+              const SizedBox(
+                height: 400,
+                child: ContactButtonGreed(),
+              )
             ],
           ),
         ),
@@ -62,7 +67,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
   Widget get _registerToPracticeButton {
     final userInfo = context.read<UserInfo>();
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 85, vertical: 8),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           shape:
@@ -70,7 +75,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
         ),
         child: const Text(
           'רישום לשיעור',
-          style: TextStyle(fontSize: 20),
+          style: TextStyle(fontSize: 16),
         ),
         onPressed: () async {
           await RegisterToPracticeScreen.pushToTabBar(context, false, userInfo);
@@ -160,14 +165,14 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
         Center(
             child: Text('על מנת להירשם לשיעורים חובה למלא תחילה הצהרת בריאות.',
                 style: theme.textTheme.bodyText1)),
-        SizedBox(height: 60, child: _haButton(userInfo, theme)),
+        SizedBox(height: 55, child: _haButton(userInfo, theme)),
       ],
     );
   }
 
   _haButton(UserInfo userInfo, ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 8),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           shape:
@@ -175,7 +180,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
         ),
         child: const Text(
           'מלא הצהרת בריאות',
-          style: TextStyle(fontSize: 20),
+          style: TextStyle(fontSize: 16),
         ),
         onPressed: () async {
           await HealthAssuranceScreen.pushToTabBar(context, userInfo);

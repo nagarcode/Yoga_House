@@ -54,6 +54,7 @@ class NotificationService {
   }
 
   listenForMessages(BuildContext context) {
+    //TODO maybe this duplicates
     const androidDetails = AndroidNotificationDetails(
         'yoga_house_channel', 'yoga_house_channel', 'yoga_house_channel',
         icon: '@mipmap/launcher_icon',
@@ -179,19 +180,19 @@ class NotificationService {
   }
 
   void adminRegisterToUserRegisteredNotifications() {
-    _subscribeToTopic(APIPath.adminTopicUserRegistered());
+    // _subscribeToTopic(APIPath.adminTopicUserRegistered());//TODO change
   }
 
   void adminUnregisterFromUserRegisteredNotifications() {
-    _unsubscribeFromTopic(APIPath.adminTopicUserRegistered());
+    // _unsubscribeFromTopic(APIPath.adminTopicUserRegistered());
   }
 
   void adminRegisterToUserCancelledNotifications() {
-    _subscribeToTopic(APIPath.adminTopicUserRegistered());
+    // _subscribeToTopic(APIPath.adminTopicUserRegistered());
   }
 
   void adminUnregisterFromUserCancelledNotifications() {
-    _unsubscribeFromTopic(APIPath.adminTopicUserRegistered());
+    // _unsubscribeFromTopic(APIPath.adminTopicUserRegistered());
   }
 }
 

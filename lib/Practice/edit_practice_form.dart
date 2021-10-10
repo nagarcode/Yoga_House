@@ -44,6 +44,7 @@ class _EditPracticeFormState extends State<EditPracticeForm> {
     _name = widget.practice.name;
     _location = widget.practice.location;
     _startTime = widget.practice.startTime;
+    _isLoading = false;
     super.initState();
   }
 

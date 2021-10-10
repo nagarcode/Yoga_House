@@ -438,7 +438,7 @@ class FirestoreDatabase {
 
   _sendClientCancelledAdminNotificationTransaction(
       UserInfo userInfo, Practice practice, Transaction transaction) {
-    final ref = _instance.doc(APIPath.newUserCancelledAdminNotification());
+    final ref = _instance.doc(APIPath.newAdminNotification());
     final username = userInfo.name;
     final practiceName = practice.name;
     final practiceDate =
@@ -451,7 +451,7 @@ class FirestoreDatabase {
 
   _sendClientRegisteredAdminNotificationTransaction(
       UserInfo userInfo, Practice practice, Transaction transaction) {
-    final ref = _instance.doc(APIPath.newUserRegisteredAdminNotification());
+    final ref = _instance.doc(APIPath.newAdminNotification());
     final username = userInfo.name;
     final practiceName = practice.name;
     final practiceDate =

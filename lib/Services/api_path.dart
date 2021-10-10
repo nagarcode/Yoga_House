@@ -56,11 +56,13 @@ class APIPath {
   static String newAdminNotification() =>
       'Admin_Notifications/${DateTime.now()}';
 
-  static String newUserCancelledAdminNotification() =>
-      'Admin_Notifications/User_Cancelled_Practice/Notifications/${DateTime.now()}';
+  static String adminNotifications() => 'Admin_Notifications';
 
-  static String newUserRegisteredAdminNotification() =>
-      'Admin_Notifications/User_Registered_To_Practice/Notifications/${DateTime.now()}';
+  // static String newUserCancelledAdminNotification() =>
+  //     'Admin_Notifications/User_Cancelled_Practice/Notifications/${DateTime.now()}';
+
+  // static String newUserRegisteredAdminNotification() =>
+  //     'Admin_Notifications/User_Registered_To_Practice/Notifications/${DateTime.now()}';
 
   static String newHomepageMessage() =>
       'Notifications/Homepage_Messages/Notifications/${DateTime.now()}';
@@ -74,7 +76,7 @@ class APIPath {
 
   static String userNotificationsTopic(String uid) => uid.toLowerCase();
 
-  static String adminTopicUserRegistered() => 'user_registered_to_practice';
+  // static String adminTopicUserRegistered() => 'user_registered_to_practice';
 
-  static String adminTopicUserCancelled() => 'user_cancelled_practice';
+  // static String adminTopicUserCancelled() => 'user_cancelled_practice';
 }

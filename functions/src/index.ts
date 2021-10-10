@@ -8,26 +8,30 @@ const appName = 'יוגה האוס';
 
 const adminNotificationsTopic = 'admin_notifications';
 
-const adminTopicUserRegistered =  'user_registered_to_practice';
+// const adminTopicUserRegistered =  'user_registered_to_practice';
 
-const adminTopicUserCancelled = 'user_cancelled_practice';
+// const adminTopicUserCancelled = 'user_cancelled_practice';
+
+const homepageMessagesTopic = 'homepage_messages';
 
 
 //Database Paths
 
-const clientCancelledDatabasePath = 'Admin_Notifications/User_Cancelled_Practice/Notifications/{document=**}';
+// const clientCancelledDatabasePath = 'Admin_Notifications/User_Cancelled_Practice/Notifications/{document=**}';
 
-const clientRegisteredDatabasePath = 'Admin_Notifications/User_Registered_To_Practice/Notifications/{document=**}'
+// const clientRegisteredDatabasePath = 'Admin_Notifications/User_Registered_To_Practice/Notifications/{document=**}'
 
 const homepageMessagesPath = 'Notifications/Homepage_Messages/Notifications/{document=**}'
 
 const clientNotificationsPath = 'Client_Notifications/{document=**}';
 
+const adminNotificationsPath = 'Admin_Notifications/{document=**}';
+
 
 const fcm = admin.messaging();
 
 export const sendNewHomepageMsgAlert = functions.firestore
-  .document(`Admin_Notifications/{document=**}`)
+  .document(homepageMessagesPath)
   .onCreate(async (snapshot) => {
     const message = snapshot.data();
     const payload: admin.messaging.MessagingPayload = {
@@ -37,12 +41,11 @@ export const sendNewHomepageMsgAlert = functions.firestore
         click_action: "FLUTTER_NOTIFICATION_CLICK", // required only for onResume or onLaunch callbacks
       },
     };
-
-    return fcm.sendToTopic(`homepage_messages`, payload);
+    return fcm.sendToTopic(homepageMessagesTopic, payload);
   });
 
 export const sendAdminNotification = functions.firestore
-  .document(homepageMessagesPath)
+  .document(adminNotificationsPath)
   .onCreate(async (snapshot) => {
     const message = snapshot.data();
     const payload: admin.messaging.MessagingPayload = {
@@ -72,32 +75,32 @@ export const sendClientNotification = functions.firestore
   });
 
 
-  export const sendClientRegisteredToWorkoutAdminAlert = functions.firestore
-  .document(clientRegisteredDatabasePath)
-  .onCreate(async (snapshot) => {
-    const message = snapshot.data();
-    const payload: admin.messaging.MessagingPayload = {
-      notification: {
-        title: `${message.title}`,
-        body: `${message.msg}`,
-        click_action: "FLUTTER_NOTIFICATION_CLICK", // required only for onResume or onLaunch callbacks
-      },
-    };
+  // export const sendClientRegisteredToWorkoutAdminAlert = functions.firestore
+  // .document(clientRegisteredDatabasePath)
+  // .onCreate(async (snapshot) => {
+  //   const message = snapshot.data();
+  //   const payload: admin.messaging.MessagingPayload = {
+  //     notification: {
+  //       title: `${message.title}`,
+  //       body: `${message.msg}`,
+  //       click_action: "FLUTTER_NOTIFICATION_CLICK", // required only for onResume or onLaunch callbacks
+  //     },
+  //   };
 
-    return fcm.sendToTopic(adminTopicUserRegistered, payload);
-  });
+  //   return fcm.sendToTopic(adminTopicUserRegistered, payload);
+  // });
 
-  export const sendClientCancelledWorkoutAdminAlert = functions.firestore
-  .document(clientCancelledDatabasePath)
-  .onCreate(async (snapshot) => {
-    const message = snapshot.data();
-    const payload: admin.messaging.MessagingPayload = {
-      notification: {
-        title: `${message.title}`,
-        body: `${message.msg}`,
-        click_action: "FLUTTER_NOTIFICATION_CLICK", // required only for onResume or onLaunch callbacks
-      },
-    };
+  // export const sendClientCancelledWorkoutAdminAlert = functions.firestore
+  // .document(clientCancelledDatabasePath)
+  // .onCreate(async (snapshot) => {
+  //   const message = snapshot.data();
+  //   const payload: admin.messaging.MessagingPayload = {
+  //     notification: {
+  //       title: `${message.title}`,
+  //       body: `${message.msg}`,
+  //       click_action: "FLUTTER_NOTIFICATION_CLICK", // required only for onResume or onLaunch callbacks
+  //     },
+  //   };
 
-    return fcm.sendToTopic(adminTopicUserCancelled, payload);
-  });
+  //   return fcm.sendToTopic(adminTopicUserCancelled, payload);
+  // });

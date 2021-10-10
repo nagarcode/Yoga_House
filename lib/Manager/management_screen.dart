@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:yoga_house/Client/client_home.dart';
 import 'package:yoga_house/Client/register_to_practice_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/homepage_message_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/notifications_settings.dart';
@@ -88,6 +90,14 @@ class _ManagementScreenState extends State<ManagementScreen> {
           leading: Icon(Icons.history_toggle_off_rounded, color: iconColor),
           onPressed: (context) async {
             await PracticesHistoryScreen.pushToTabBar(context, null, true);
+          },
+        ),
+        SettingsTile(
+          title: 'מבט לדף לקוחות',
+          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
+          leading: Icon(Icons.person_outline, color: iconColor),
+          onPressed: (context) async {
+            await pushNewScreen(context, screen: ClientHome());
           },
         ),
         // SettingsTile(
