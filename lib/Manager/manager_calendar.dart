@@ -74,9 +74,9 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       selectionDecoration: const BoxDecoration(),
       timeSlotViewSettings: const TimeSlotViewSettings(
         timeFormat: 'H:mm',
-        startHour: 4,
-        // timeInterval: Duration(minutes: 30),
-        timeIntervalHeight: 80,
+        startHour: 5,
+        endHour: 23,
+        timeIntervalHeight: 32,
       ),
     );
   }
