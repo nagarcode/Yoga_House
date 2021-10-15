@@ -98,10 +98,10 @@ class _PracticeCardState extends State<PracticeCard> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (!widget.managerView)
-          Expanded(
-            child: _registerOrWaitingListButton(theme, isFull),
-          ),
+        // if (!widget.managerView)
+        Expanded(
+          child: _registerOrWaitingListButton(theme, isFull),
+        ),
         _registeredParticipants(registered, maxParticipants, theme, isFull),
       ],
     );

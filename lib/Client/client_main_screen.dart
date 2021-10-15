@@ -131,11 +131,11 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
       managerView: false,
       data: practice,
       registerCallback: practice.registerToPracticeCallback(
-          userInfo, widget.database, context),
+          userInfo, widget.database, context, false),
       waitingListCallback: () => {},
       isRegistered: practice.isUserRegistered(userInfo.uid),
       unregisterCallback: practice.unregisterFromPracticeCallback(
-          userInfo, widget.database, context, widget.appInfo),
+          userInfo, widget.database, context, widget.appInfo, false),
     );
   }
 

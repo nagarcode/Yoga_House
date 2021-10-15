@@ -161,28 +161,30 @@ class Practice {
     );
   }
 
-  Function registerToPracticeCallback(UserInfo userInfo,
-      FirestoreDatabase database, BuildContext screenContext) {
+  Function registerToPracticeCallback(
+      UserInfo userInfo,
+      FirestoreDatabase database,
+      BuildContext screenContext,
+      bool isManagerView) {
     final notifications = screenContext.read<NotificationService>();
     // final appInfo = screenContext.read<AppInfo>();
     return () async {
       try {
-        if (userInfo.isManager) {
-          throw UnimplementedError('needs implementation');
-        } else {
-          if (!userInfo.hasPunchcard) {
-            await _showNoPunchcardDialog(screenContext);
-            return;
-          }
-          if (!userInfo.hasPunchesLeft) {
-            await _showNoPunchesLeftDialog(screenContext);
-            return;
-          }
-          final didRequestRegister =
-              await _promtRegistrationConfirmation(screenContext);
-          if (didRequestRegister) {
-            database.registerUserToPracticeTransaction(userInfo, id);
-            notifications.setPracticeLocalNotification(this, 24);
+        if (!userInfo.hasPunchcard) {
+          await _showNoPunchcardDialog(screenContext);
+          return;
+        }
+        if (!userInfo.hasPunchesLeft) {
+          await _showNoPunchesLeftDialog(screenContext);
+          return;
+        }
+        final didRequestRegister =
+            await _promtRegistrationConfirmation(screenContext);
+        if (didRequestRegister) {
+          database.registerUserToPracticeTransaction(userInfo, id);
+          notifications.setPracticeLocalNotification(this, 24);
+          if (isManagerView) {
+            notifications.sendManagerRegisteredYouNotification(userInfo, this);
           }
         }
       } on Exception catch (_) {
@@ -194,19 +196,25 @@ class Practice {
     };
   }
 
-  Function unregisterFromPracticeCallback(UserInfo userInfo,
-      FirestoreDatabase database, BuildContext screenContext, AppInfo appInfo) {
+  Function unregisterFromPracticeCallback(
+      UserInfo userInfo,
+      FirestoreDatabase database,
+      BuildContext screenContext,
+      AppInfo appInfo,
+      bool isManagerView) {
     return () async {
+      final notifications = screenContext.read<NotificationService>();
+
       try {
-        if (userInfo.isManager) {
-          throw UnimplementedError('needs implementation');
-        } else {
-          final didRequestUnregister =
-              await _promtUnregisterConfirmation(screenContext);
-          if (didRequestUnregister) {
-            bool shouldRestorePunch = isEnoughTimeLeftToCancel(appInfo);
-            database.unregisterFromPracticeTransaction(
-                userInfo, this, shouldRestorePunch, appInfo);
+        final didRequestUnregister =
+            await _promtUnregisterConfirmation(screenContext);
+        if (didRequestUnregister) {
+          bool shouldRestorePunch = isEnoughTimeLeftToCancel(appInfo);
+          database.unregisterFromPracticeTransaction(
+              userInfo, this, shouldRestorePunch, appInfo);
+          if (isManagerView) {
+            notifications.sendManagerUnregisteredYouNotification(
+                userInfo, this);
           }
         }
       } on Exception catch (_) {
@@ -408,9 +416,13 @@ class Practice {
   }
 
   Future<void> leaveWaitingList(
-      FirestoreDatabase database, UserInfo user) async {
+      FirestoreDatabase database, UserInfo user, BuildContext context) async {
     if (startTime.isBefore(DateTime.now())) return;
-    return await database.removeUserFromWaitingList(this, user);
+    await database.removeUserFromWaitingList(this, user);
+    await showOkAlertDialog(
+        context: context,
+        message: 'בוטל רישומך לרשימת ההמתנה של שיעור זה.',
+        title: 'הצלחה');
   }
 
   Practice withUserAddedToWaitingList(UserInfo userInfo) {

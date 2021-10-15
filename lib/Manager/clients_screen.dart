@@ -134,7 +134,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
         Icon(Icons.add, color: theme.colorScheme.primary),
         (cardContext) async {
           Navigator.of(cardContext).pop();
-          await RegisterToPracticeScreen.pushToTabBar(context, false, userInfo);
+          await RegisterToPracticeScreen.pushToTabBar(context, true, userInfo);
         },
       ),
       CardSelectionTile(

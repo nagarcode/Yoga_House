@@ -75,13 +75,13 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
       managerView: widget.managerView,
       data: practice,
       registerCallback: practice.registerToPracticeCallback(
-          widget.userInfo, database, context),
+          widget.userInfo, database, context, widget.managerView),
       waitingListCallback: () {
         _waitingListCallback(practice, widget.userInfo, database);
       },
       isRegistered: practice.isUserRegistered(widget.userInfo.uid),
       unregisterCallback: practice.unregisterFromPracticeCallback(
-          widget.userInfo, database, context, appInfo),
+          widget.userInfo, database, context, appInfo, widget.managerView),
     );
   }
 
@@ -114,7 +114,7 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
   _waitingListCallback(
       Practice practice, UserInfo userInfo, FirestoreDatabase database) {
     if (practice.isInWaitingList(userInfo)) {
-      practice.leaveWaitingList(database, userInfo);
+      practice.leaveWaitingList(database, userInfo, context);
     } else {
       practice.joinWaitingList(database, userInfo, context);
     }
