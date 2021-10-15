@@ -59,7 +59,7 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
       groupBy: _groupBy,
       groupSeparatorBuilder: _groupSeparatorBuilder,
       itemBuilder: _itemBuilder,
-      itemComparator: _utemComparator,
+      itemComparator: _itemComparator,
       groupComparator: _groupComparator,
     );
   }
@@ -85,7 +85,7 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
     );
   }
 
-  int _utemComparator(first, second) =>
+  int _itemComparator(first, second) =>
       first.startTime.compareTo(second.startTime);
 
   String _groupBy(practice) =>
@@ -99,9 +99,16 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
     final theme = Theme.of(context);
     final dateTime = DateFormat.yMd('he_IL').parse(groupByValue);
     final verbouseDay = Utils.vebouseDayFromDateTime(dateTime);
-    return Text('$verbouseDay, $groupByValue',
-        style: theme.textTheme.bodyText1!.copyWith(fontSize: 18),
-        textAlign: TextAlign.center);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 90),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Text('$verbouseDay, $groupByValue',
+            style: theme.textTheme.bodyText2!
+                .copyWith(fontSize: 18, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center),
+      ),
+    );
   }
 
   _waitingListCallback(

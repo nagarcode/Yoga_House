@@ -494,11 +494,15 @@ class FirestoreDatabase {
   // }
 
   Future<void> editPractice(Practice practice, String name, String location,
-      DateTime startTime) async {
+      DateTime startTime, DateTime endTime) async {
     final path = APIPath.futurePractice(practice.id);
     final doc = _instance.doc(path);
-    return await doc
-        .update({'name': name, 'location': location, 'startTime': startTime});
+    return await doc.update({
+      'name': name,
+      'location': location,
+      'startTime': startTime,
+      'endTime': endTime
+    });
   }
 
   Future<List<Punchcard>> userPunchcardsFuture(UserInfo user) async {

@@ -81,7 +81,7 @@ class _ClientPersonalScreenState extends State<ClientPersonalScreen> {
     final iconColor = Theme.of(context).colorScheme.primary;
     final theme = Theme.of(context);
     return SettingsSection(
-      title: 'אישי',
+      title: '',
       titleTextStyle: theme.textTheme.bodyText1,
       tiles: [
         SettingsTile(

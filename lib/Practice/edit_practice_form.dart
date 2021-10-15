@@ -38,6 +38,7 @@ class _EditPracticeFormState extends State<EditPracticeForm> {
   late String _name;
   late String _location;
   late DateTime _startTime;
+  late Duration duration;
 
   @override
   void initState() {
@@ -45,6 +46,7 @@ class _EditPracticeFormState extends State<EditPracticeForm> {
     _location = widget.practice.location;
     _startTime = widget.practice.startTime;
     _isLoading = false;
+    duration = widget.practice.endTime.difference(widget.practice.startTime);
     super.initState();
   }
 
@@ -134,8 +136,9 @@ class _EditPracticeFormState extends State<EditPracticeForm> {
     _formKey.currentState?.save();
     final didValidate = _formKey.currentState?.validate();
     if (didValidate != null && didValidate) {
+      final endTime = _startTime.add(duration);
       await widget.database
-          .editPractice(widget.practice, _name, _location, _startTime);
+          .editPractice(widget.practice, _name, _location, _startTime, endTime);
       await showOkAlertDialog(
           context: context,
           title: 'הצלחה',

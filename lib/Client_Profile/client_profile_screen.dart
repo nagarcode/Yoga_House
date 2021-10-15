@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
 import 'package:yoga_house/Services/database.dart';
@@ -90,6 +91,13 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                 title: Text(userInfo.email),
                 // onTap: () => {},
               ),
+              if (widget.isManagerView)
+                ListTile(
+                  leading: Icon(FontAwesomeIcons.hashtag,
+                      color: theme.colorScheme.primary),
+                  title: SelectableText(userInfo.uid),
+                  // onTap: () => {},
+                ),
             ],
           )),
     );

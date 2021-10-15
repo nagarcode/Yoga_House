@@ -53,11 +53,13 @@ class _ClientsScreenState extends State<ClientsScreen> {
         // print(allUsers.first.punchcard?.punchesRemaining);
         return Scaffold(
           appBar: AppBar(title: Utils.appBarTitle(context, 'מתאמנים')),
-          body: Column(
-            children: [
-              _buildSearch(allUsers),
-              _buildList(allUsers),
-            ],
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildSearch(allUsers),
+                _buildList(allUsers),
+              ],
+            ),
           ),
         );
       },
@@ -82,6 +84,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
     }
 
     return ListView.separated(
+        physics: const NeverScrollableScrollPhysics(),
         separatorBuilder: (context, index) => const Divider(),
         shrinkWrap: true,
         itemCount: usrsTodspl.length,

@@ -37,7 +37,7 @@ class _PracticeCardState extends State<PracticeCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         child: _buildCard(context),
@@ -60,7 +60,16 @@ class _PracticeCardState extends State<PracticeCard> {
           onPressed: widget.managerView && !widget.isHistory
               ? () => widget.data.onTap(context, widget.database)
               : null),
-      title: Text('$hour\n${widget.data.name}'),
+      title: RichText(
+        text: TextSpan(
+          text: hour + '\n',
+          style:
+              theme.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.bold),
+          children: <TextSpan>[
+            TextSpan(text: widget.data.name, style: theme.textTheme.subtitle1),
+          ],
+        ),
+      ),
       trailing: _trailing(theme),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,29 +126,37 @@ class _PracticeCardState extends State<PracticeCard> {
     );
   }
 
-  TextButton _registerOrWaitingListButton(ThemeData theme, bool isFull) {
-    final registeredStyle =
-        theme.textTheme.subtitle1?.copyWith(color: theme.colorScheme.primary);
-    return TextButton(
-      onPressed: () {
-        if (widget.isRegistered) {
-          widget.unregisterCallback();
-        } else if (widget.data.isFull()) {
-          widget.waitingListCallback();
-        } else {
-          widget.registerCallback();
-        }
-      },
-      child: Text(
-        widget.isRegistered
-            ? 'רשום. קליק לביטול רישום'
-            : isFull
-                ? widget.isInWaitingList
-                    ? 'צא מרשימת המתנה'
-                    : 'לרשימת המתנה'
-                : 'הירשם',
-        style:
-            widget.isRegistered ? registeredStyle : theme.textTheme.subtitle1,
+  Widget _registerOrWaitingListButton(ThemeData theme, bool isFull) {
+    // final registeredStyle =
+    //     theme.textTheme.subtitle1?.copyWith(color: theme.colorScheme.primary);
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+        ),
+        onPressed: () {
+          if (widget.isRegistered) {
+            widget.unregisterCallback();
+          } else if (widget.data.isFull()) {
+            widget.waitingListCallback();
+          } else {
+            widget.registerCallback();
+          }
+        },
+        child: Text(
+          widget.isRegistered
+              ? 'רשום. קליק לביטול'
+              : isFull
+                  ? widget.isInWaitingList
+                      ? 'צא מרשימת המתנה'
+                      : 'לרשימת המתנה'
+                  : 'הירשם',
+          // style:
+          //     widget.isRegistered ? registeredStyle : theme.textTheme.subtitle1,
+        ),
       ),
     );
   }

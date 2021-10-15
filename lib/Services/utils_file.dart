@@ -41,6 +41,7 @@ class Utils {
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: ListView(
+          physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           children: tiles,
         ),
