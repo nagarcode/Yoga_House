@@ -182,7 +182,9 @@ class Practice {
             await _promtRegistrationConfirmation(screenContext);
         if (didRequestRegister) {
           database.registerUserToPracticeTransaction(userInfo, id);
-          notifications.setPracticeLocalNotification(this, 24);
+          if (!isManagerView) {
+            notifications.setPracticeLocalNotification(this, 24);
+          }
           if (isManagerView) {
             notifications.sendManagerRegisteredYouNotification(userInfo, this);
           }
@@ -215,6 +217,9 @@ class Practice {
           if (isManagerView) {
             notifications.sendManagerUnregisteredYouNotification(
                 userInfo, this);
+          }
+          if (!isManagerView) {
+            notifications.cancelPracticeLocalNotification(this);
           }
         }
       } on Exception catch (_) {
