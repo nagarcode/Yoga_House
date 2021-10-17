@@ -1,6 +1,7 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Services/database.dart';
@@ -39,12 +40,14 @@ class _EditPracticeFormState extends State<EditPracticeForm> {
   late String _location;
   late DateTime _startTime;
   late Duration duration;
+  late int _maxParticipants;
 
   @override
   void initState() {
     _name = widget.practice.name;
     _location = widget.practice.location;
     _startTime = widget.practice.startTime;
+    _maxParticipants = widget.practice.maxParticipants;
     _isLoading = false;
     duration = widget.practice.endTime.difference(widget.practice.startTime);
     super.initState();
@@ -68,6 +71,7 @@ class _EditPracticeFormState extends State<EditPracticeForm> {
     return [
       _nameInput(context, labelStyle!),
       _locationInput(context, labelStyle),
+      _maxParticipantsInput(context, labelStyle),
       _startTimeInput(context, labelStyle),
     ];
   }
@@ -131,14 +135,33 @@ class _EditPracticeFormState extends State<EditPracticeForm> {
     );
   }
 
+  Widget _maxParticipantsInput(BuildContext ctx, TextStyle labelStyle) {
+    const maxChars = 3;
+    return FormBuilderTextField(
+      initialValue: _maxParticipants.toString(),
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      maxLength: maxChars,
+      name: 'max participants',
+      decoration: InputDecoration(
+          labelText: 'מס׳ משתתפים מקסימלי', labelStyle: labelStyle),
+      onChanged: (newStr) {
+        if (newStr != null) _maxParticipants = int.tryParse(newStr) ?? 0;
+      },
+      validator: FormBuilderValidators.compose([
+        FormBuilderValidators.required(ctx),
+        FormBuilderValidators.integer(ctx),
+      ]),
+    );
+  }
+
   Future<void> _submitForm() async {
     _setIsLoading(true);
     _formKey.currentState?.save();
     final didValidate = _formKey.currentState?.validate();
     if (didValidate != null && didValidate) {
       final endTime = _startTime.add(duration);
-      await widget.database
-          .editPractice(widget.practice, _name, _location, _startTime, endTime);
+      await widget.database.editPractice(widget.practice, _name, _location,
+          _startTime, endTime, _maxParticipants);
       await showOkAlertDialog(
           context: context,
           title: 'הצלחה',

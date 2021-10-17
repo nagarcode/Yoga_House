@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:yoga_house/Services/app_info.dart';
 import 'package:yoga_house/Services/database.dart';
+import 'package:yoga_house/Services/notifications.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 
 import 'practice.dart';
@@ -52,13 +55,15 @@ class _PracticeCardState extends State<PracticeCard> {
         widget.data.endTime.difference(widget.data.startTime).inMinutes;
     final text =
         '$durationMinutes דקות\nרמה: ${widget.data.level}\nמיקום: ${widget.data.location}';
-
+    final appInfo = context.read<AppInfo>();
+    final notifications = context.read<NotificationService>();
     return ListTile(
       leading: IconButton(
           icon: const Icon(Icons.more_vert),
           color: theme.colorScheme.primary,
           onPressed: widget.managerView && !widget.isHistory
-              ? () => widget.data.onTap(context, widget.database)
+              ? () => widget.data
+                  .onTap(context, widget.database, appInfo, notifications)
               : null),
       title: RichText(
         text: TextSpan(
@@ -165,6 +170,7 @@ class _PracticeCardState extends State<PracticeCard> {
     final theme = Theme.of(context);
     final users = widget.data.registeredParticipants;
     final desc = widget.data.description;
+    final appInfo = context.read<AppInfo>();
     var descText =
         Text(desc, style: theme.textTheme.subtitle1!.copyWith(fontSize: 15));
     const registeredText = Text('רשומים:');
@@ -175,7 +181,10 @@ class _PracticeCardState extends State<PracticeCard> {
         dense: true,
         title: Text('- ' + user.name,
             style: theme.textTheme.subtitle1!.copyWith(fontSize: 15)),
-        onTap: () {},
+        onTap: () {
+          widget.data.unregisterFromPracticeCallback(
+              user, widget.database, context, appInfo, true)();
+        },
       );
       rows.add(tile);
     }

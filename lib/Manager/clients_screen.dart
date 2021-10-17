@@ -73,6 +73,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
       );
 
   _buildList(List<UserInfo> allUsers) {
+    usersToDisplay?.sort((a, b) => a.name.compareTo(b.name));
     final usrsTodspl = usersToDisplay;
     if (usrsTodspl == null) {
       return const SplashScreen();

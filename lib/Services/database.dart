@@ -194,8 +194,12 @@ class FirestoreDatabase {
     });
   }
 
-  Future<bool> unregisterFromPracticeTransaction(UserInfo userToRemoveObj,
-      Practice practice, bool shouldRestorePunch, AppInfo appInfo) async {
+  Future<bool> unregisterFromPracticeTransaction(
+      UserInfo userToRemoveObj,
+      Practice practice,
+      bool shouldRestorePunch,
+      AppInfo appInfo,
+      bool shouldSendAdminNotification) async {
     final userInfoRef = _instance.doc(APIPath.userInfo(userToRemoveObj.uid));
     final practiceRef = _instance.doc(APIPath.futurePractice(practice.id));
     return await _instance.runTransaction<bool>((transaction) async {
@@ -217,8 +221,10 @@ class FirestoreDatabase {
         transaction.update(
             userInfoRef, userToRemove.copyWithIncrementedPunch().toMap());
       }
-      _sendClientCancelledAdminNotificationTransaction(
-          userToRemove, practicePre, transaction);
+      if (shouldSendAdminNotification) {
+        _sendClientCancelledAdminNotificationTransaction(
+            userToRemove, practicePre, transaction);
+      }
       _addCancellationTransaction(
           practice, userToRemoveObj, appInfo, transaction);
       _notifyWaitingListTransaction(practice, transaction);
@@ -445,7 +451,7 @@ class FirestoreDatabase {
         Utils.numericDayMonthYearFromDateTime(practice.startTime);
     const title = 'ביטול רישום לשיעור';
     final msg =
-        '$username ביטל רישום ל$practiceName שיתקיים בתאריך $practiceDate';
+        '$username ביטל/ה רישום לשיעור $practiceName שיתקיים בתאריך $practiceDate';
     transaction.set(ref, {'title': title, 'msg': msg});
   }
 
@@ -457,7 +463,7 @@ class FirestoreDatabase {
     final practiceDate =
         Utils.numericDayMonthYearFromDateTime(practice.startTime);
     const title = 'רישום לשיעור';
-    final msg = '$username נרשם ל$practiceName בתאריך $practiceDate';
+    final msg = '$username נרשם/ה לשיעור $practiceName בתאריך $practiceDate';
     transaction.set(ref, {'title': title, 'msg': msg});
   }
 
@@ -494,14 +500,15 @@ class FirestoreDatabase {
   // }
 
   Future<void> editPractice(Practice practice, String name, String location,
-      DateTime startTime, DateTime endTime) async {
+      DateTime startTime, DateTime endTime, int maxParticipants) async {
     final path = APIPath.futurePractice(practice.id);
     final doc = _instance.doc(path);
     return await doc.update({
       'name': name,
       'location': location,
       'startTime': startTime,
-      'endTime': endTime
+      'endTime': endTime,
+      'maxParticipants': maxParticipants,
     });
   }
 
