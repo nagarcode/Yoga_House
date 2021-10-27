@@ -503,6 +503,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       [],
       0,
       [],
+      true,
     );
     await widget.database.addPractice(practice);
     _resetFields();
@@ -534,7 +535,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
         startTime: practice.startTime,
         endTime: practice.endTime,
         subject: '${practice.name} $sub',
-        color: theme.colorScheme.primary,
+        color: practice.isLocked ? Colors.grey : theme.colorScheme.primary,
       );
       appointments.add(apt);
     }

@@ -179,6 +179,7 @@ class FirestoreDatabase {
       if (practicePre.isFull() || practicePre.isUserRegistered(userToAdd.uid)) {
         return false;
       }
+      if (practicePre.isFull()) return false;
       practicePre.registeredParticipants.add(userToAdd);
       final practicePost = practicePre;
       transaction.update(practiceRef, practicePost.toMap());
@@ -201,25 +202,34 @@ class FirestoreDatabase {
       AppInfo appInfo,
       bool shouldSendAdminNotification) async {
     final userInfoRef = _instance.doc(APIPath.userInfo(userToRemoveObj.uid));
-    final practiceRef = _instance.doc(APIPath.futurePractice(practice.id));
+    final practicePath = APIPath.futurePractice(practice.id);
+    final practiceRef = _instance.doc(practicePath);
     return await _instance.runTransaction<bool>((transaction) async {
       final userInfoSnapshot = await transaction.get(userInfoRef);
       final practiceSnapshot = await transaction.get(practiceRef);
       final userInfoData = userInfoSnapshot.data();
-      final data = practiceSnapshot.data();
-      if (data == null || userInfoData == null) return false;
+      final practiceData = practiceSnapshot.data();
+      if (userInfoData == null) {
+        debugPrint('no user info data');
+        return false;
+      }
+      if (practiceData == null) {
+        debugPrint('no practice data');
+        return false;
+      }
       final userToRemove = UserInfo.fromMap(userInfoData);
-      final practicePre = Practice.fromMap(data);
+      final practicePre = Practice.fromMap(practiceData);
       if (practicePre.isEmpty() ||
           !practicePre.isUserRegistered(userToRemove.uid)) {
+        debugPrint('no practice');
         return false;
       }
       practicePre.removeParticipant(userToRemove);
       final practicePost = practicePre;
       transaction.update(practiceRef, practicePost.toMap());
       if (shouldRestorePunch) {
-        transaction.update(
-            userInfoRef, userToRemove.copyWithIncrementedPunch().toMap());
+        final newUserInfo = userToRemove.copyWithIncrementedPunch();
+        transaction.update(userInfoRef, newUserInfo.toMap());
       }
       if (shouldSendAdminNotification) {
         _sendClientCancelledAdminNotificationTransaction(
@@ -381,10 +391,9 @@ class FirestoreDatabase {
   }
 
   deletePractice(Practice practice) async {
-    final isFuturePractice = practice.startTime.isAfter(DateTime.now());
-    final path = isFuturePractice
-        ? APIPath.futurePractice(practice.id)
-        : APIPath.pastPracticeSingleDoc(practice.startTime);
+    //Assumes future practice
+    final path = APIPath.futurePractice(practice.id);
+
     await deleteDocument(path);
   }
 
@@ -578,7 +587,8 @@ class FirestoreDatabase {
     final title = 'רשימת המתנה: $name';
     final date = Utils.numericDayMonthYearFromDateTime(practice.startTime);
     final hour = Utils.hourFromDateTime(practice.startTime);
-    final msg = 'התפנה מקום לשיעור $name בתאריך $date בשעה $hour.';
+    final msg =
+        'התפנה מקום לשיעור $name בתאריך $date בשעה $hour. היכנס/י על מנת להירשם.';
     for (var user in practice.waitingList) {
       final path = APIPath.newUserNotification();
       final ref = _instance.doc(path);
@@ -621,5 +631,17 @@ class FirestoreDatabase {
     }
 
     return allCancellations;
+  }
+
+  Future<void> unlockPractice(Practice practice) {
+    final practicePath = APIPath.futurePractice(practice.id);
+    final practiceRef = _instance.doc(practicePath);
+    return practiceRef.update({'isLocked': false});
+  }
+
+  Future<void> lockPractice(Practice practice) {
+    final practicePath = APIPath.futurePractice(practice.id);
+    final practiceRef = _instance.doc(practicePath);
+    return practiceRef.update({'isLocked': true});
   }
 }

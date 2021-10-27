@@ -23,6 +23,7 @@ class Practice {
   final List<UserInfo> registeredParticipants;
   final int numOfUsersInWaitingList;
   final List<UserInfo> waitingList;
+  final bool isLocked;
 
   int get numOfRegisteredParticipants => registeredParticipants.length;
 
@@ -40,6 +41,7 @@ class Practice {
     this.registeredParticipants,
     this.numOfUsersInWaitingList,
     this.waitingList,
+    this.isLocked,
   );
   factory Practice.fromMap(Map<String, dynamic> data) {
     List<UserInfo> registered = _extractRegisteredUsers(data);
@@ -59,6 +61,7 @@ class Practice {
       registered,
       data['numOfUsersInWaitingList'],
       waitingList,
+      data['isLocked'] ?? false,
     );
   }
 
@@ -107,6 +110,7 @@ class Practice {
       'numOfRegisteredParticipants': numOfRegisteredParticipants,
       'registeredParticipants': registeredParticipants,
       'waitingList': waitingList,
+      'isLocked': isLocked,
     };
   }
 
@@ -143,6 +147,7 @@ class Practice {
     int? numOfUsersInWaitingList,
     int? numOfRegisteredParticipants,
     List<UserInfo>? waitingList,
+    bool? isLocked,
   }) {
     return Practice(
       id ?? this.id,
@@ -158,6 +163,7 @@ class Practice {
       registeredParticipants ?? this.registeredParticipants,
       numOfUsersInWaitingList ?? this.numOfUsersInWaitingList,
       waitingList ?? this.waitingList,
+      isLocked ?? this.isLocked,
     );
   }
 
@@ -176,6 +182,10 @@ class Practice {
         }
         if (!userInfo.hasPunchesLeft) {
           await _showNoPunchesLeftDialog(screenContext);
+          return;
+        }
+        if (isLocked) {
+          await _showLockedDialog(screenContext);
           return;
         }
         final didRequestRegister =
@@ -328,6 +338,20 @@ class Practice {
       NotificationService notifications) {
     final theme = Theme.of(context);
     return [
+      if (!isLocked)
+        CardSelectionTile(
+          context,
+          'נעל שיעור',
+          Icon(Icons.lock_outline, color: theme.colorScheme.primary),
+          (context) => _lock(context, database),
+        ),
+      if (isLocked)
+        CardSelectionTile(
+          context,
+          'פתח שיעור להרשמה',
+          Icon(Icons.lock_open_outlined, color: theme.colorScheme.primary),
+          (context) => _unlock(context, database),
+        ),
       CardSelectionTile(
         context,
         'שלח הודעה לרשומים',
@@ -355,7 +379,7 @@ class Practice {
     final shouldDelete = await _didRequestDelete(context);
     if (shouldDelete) {
       for (var user in registeredParticipants) {
-        database.unregisterFromPracticeTransaction(
+        await database.unregisterFromPracticeTransaction(
             user, this, true, appInfo, false);
         notifications.sendManagerUnregisteredYouNotification(user, this);
       }
@@ -467,6 +491,43 @@ class Practice {
         context: context,
         title: 'רישום מאושר',
         message: 'הרישום התבצע בהצלחה.');
+  }
+
+  _lock(BuildContext context, FirestoreDatabase database) async {
+    final bool shouldLock = await _promtShouldLock(context);
+    if (shouldLock) await database.lockPractice(this);
+    Navigator.of(context).pop();
+  }
+
+  _unlock(BuildContext context, FirestoreDatabase database) async {
+    final bool shouldUnlock = await _promtShouldUnlock(context);
+    if (shouldUnlock) await database.unlockPractice(this);
+    Navigator.of(context).pop();
+  }
+
+  Future<bool> _promtShouldUnlock(BuildContext context) async {
+    final ans = await showOkCancelAlertDialog(
+        context: context,
+        title: 'פתח להרשמה',
+        message:
+            'האם לפתוח שיעור זה להרשמה? לקוחות יוכלו להירשם מרגע זה והלאה.');
+    return ans == OkCancelResult.ok;
+  }
+
+  Future<bool> _promtShouldLock(BuildContext context) async {
+    final ans = await showOkCancelAlertDialog(
+        context: context,
+        title: 'נעל שיעור',
+        message: 'האם לנעול שיעור זה? לקוחות לא יוכלו להירשם מרגע זה והלאה.',
+        isDestructiveAction: true);
+    return ans == OkCancelResult.ok;
+  }
+
+  _showLockedDialog(BuildContext screenContext) async {
+    await showOkAlertDialog(
+        context: screenContext,
+        title: 'שיעור נעול',
+        message: 'שיעור זה נעול ולא ניתן להירשם אליו.');
   }
 }
 
