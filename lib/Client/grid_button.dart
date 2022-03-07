@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 class GridButton extends StatelessWidget {
@@ -38,9 +39,9 @@ class GridButton extends StatelessWidget {
               flex: 1,
               child: Align(
                 alignment: Alignment.topCenter,
-                child: Text(
+                child: AutoSizeText(
                   text,
-                  style: const TextStyle(fontSize: 15, color: Colors.white),
+                  style: const TextStyle(fontSize: 13, color: Colors.white),
                   // style: theme.textTheme.button
                   //     ?.copyWith(fontSize: 15, fontWeight: FontWeight.normal),
                 ),

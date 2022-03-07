@@ -53,11 +53,13 @@ class _ClientsScreenState extends State<ClientsScreen> {
         // print(allUsers.first.punchcard?.punchesRemaining);
         return Scaffold(
           appBar: AppBar(title: Utils.appBarTitle(context, 'מתאמנים')),
-          body: Column(
-            children: [
-              _buildSearch(allUsers),
-              _buildList(allUsers),
-            ],
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildSearch(allUsers),
+                _buildList(allUsers),
+              ],
+            ),
           ),
         );
       },
@@ -71,6 +73,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
       );
 
   _buildList(List<UserInfo> allUsers) {
+    usersToDisplay?.sort((a, b) => a.name.compareTo(b.name));
     final usrsTodspl = usersToDisplay;
     if (usrsTodspl == null) {
       return const SplashScreen();
@@ -82,6 +85,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
     }
 
     return ListView.separated(
+        physics: const NeverScrollableScrollPhysics(),
         separatorBuilder: (context, index) => const Divider(),
         shrinkWrap: true,
         itemCount: usrsTodspl.length,
@@ -131,7 +135,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
         Icon(Icons.add, color: theme.colorScheme.primary),
         (cardContext) async {
           Navigator.of(cardContext).pop();
-          await RegisterToPracticeScreen.pushToTabBar(context, false, userInfo);
+          await RegisterToPracticeScreen.pushToTabBar(context, true, userInfo);
         },
       ),
       CardSelectionTile(

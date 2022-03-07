@@ -83,8 +83,8 @@ class MyApp extends StatelessWidget {
         bodyText2: defaultTheme.bodyText2?.copyWith(color: colorScheme.primary),
         subtitle1: defaultTheme.subtitle1
             ?.copyWith(color: colorScheme.secondaryVariant),
-        subtitle2:
-            defaultTheme.subtitle2?.copyWith(color: colorScheme.primaryVariant),
+        subtitle2: defaultTheme.subtitle2?.copyWith(
+            color: colorScheme.primaryVariant, fontWeight: FontWeight.w300),
         headline6: defaultTheme.headline6
             ?.copyWith(color: colorScheme.secondaryVariant),
         headline5: defaultTheme.headline5

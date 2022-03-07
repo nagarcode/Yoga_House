@@ -7,6 +7,8 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Services/api_path.dart';
+import 'package:yoga_house/Services/utils_file.dart';
+import 'package:yoga_house/User_Info/user_info.dart';
 import 'database.dart';
 
 class NotificationService {
@@ -43,7 +45,7 @@ class NotificationService {
     final plugin = FlutterLocalNotificationsPlugin();
     const androidSettings =
         AndroidInitializationSettings('@mipmap/launcher_icon');
-    const iosSettings = IOSInitializationSettings();
+    const iosSettings = IOSInitializationSettings(defaultPresentSound: false);
     const initSettings =
         InitializationSettings(android: androidSettings, iOS: iosSettings);
     await plugin.initialize(initSettings);
@@ -54,24 +56,23 @@ class NotificationService {
   }
 
   listenForMessages(BuildContext context) {
-    //TODO maybe this duplicates
-    const androidDetails = AndroidNotificationDetails(
-        'yoga_house_channel', 'yoga_house_channel', 'yoga_house_channel',
-        icon: '@mipmap/launcher_icon',
-        importance: Importance.max,
-        priority: Priority.high);
-    const ios = IOSNotificationDetails();
+    // const androidDetails = AndroidNotificationDetails(
+    //     'yoga_house_channel', 'yoga_house_channel', 'yoga_house_channel',
+    //     icon: '@mipmap/launcher_icon',
+    //     importance: Importance.max,
+    //     priority: Priority.high);
+    // const ios = IOSNotificationDetails();
     FirebaseMessaging.onMessage.listen(
       (message) {
         final notification = message.notification;
         // final android = message.notification?.android;
         if (notification != null) {
           debugPrint('onMessage');
-          _plugin.show(
-              notification.hashCode,
-              notification.title,
-              notification.body,
-              const NotificationDetails(android: androidDetails, iOS: ios));
+          // _plugin.show(
+          //     notification.hashCode,
+          //     notification.title,
+          //     notification.body,
+          //     const NotificationDetails(android: androidDetails, iOS: ios));
         }
       },
     );
@@ -193,6 +194,42 @@ class NotificationService {
 
   void adminUnregisterFromUserCancelledNotifications() {
     // _unsubscribeFromTopic(APIPath.adminTopicUserRegistered());
+  }
+
+  void sendNewUserAdminNotification(String name) {
+    const title = 'משתמש חדש';
+    final msg = '$name נרשם/ה למערכת';
+    sendAdminNotification(title, msg);
+  }
+
+  void sendManagerRegisteredYouNotification(
+      UserInfo userInfo, Practice practice) {
+    final targetTopic = APIPath.userNotificationsTopic(userInfo.uid);
+    final time = Utils.numericDayMonthYearFromDateTime(practice.startTime);
+    final name = practice.name;
+    const title = 'רישום לשיעור';
+    final msg = 'בוצע עבורך רישום לשיעור $name בתאריך $time.';
+    final notification = NotificationData(
+        targetUID: userInfo.uid,
+        targetUserNotificationTopic: targetTopic,
+        title: title,
+        msg: msg);
+    sendUserNotification(notification);
+  }
+
+  void sendManagerUnregisteredYouNotification(
+      UserInfo userInfo, Practice practice) {
+    final targetTopic = APIPath.userNotificationsTopic(userInfo.uid);
+    final time = Utils.numericDayMonthYearFromDateTime(practice.startTime);
+    final name = practice.name;
+    const title = 'ביטול רישום לשיעור';
+    final msg = 'בוטל רישומך לשיעור $name בתאריך $time.';
+    final notification = NotificationData(
+        targetUID: userInfo.uid,
+        targetUserNotificationTopic: targetTopic,
+        title: title,
+        msg: msg);
+    sendUserNotification(notification);
   }
 }
 

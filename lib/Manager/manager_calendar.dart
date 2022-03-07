@@ -10,7 +10,9 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Practice/practice_template.dart';
 import 'package:yoga_house/Practice/practice_template_card.dart';
+import 'package:yoga_house/Services/app_info.dart';
 import 'package:yoga_house/Services/database.dart';
+import 'package:yoga_house/Services/notifications.dart';
 import 'package:yoga_house/Services/shared_prefs.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
@@ -91,11 +93,13 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
   }
 
   void _tappedAnAppointment(CalendarTapDetails tapDetails) async {
+    final appInfo = context.read<AppInfo>();
+    final notifications = context.read<NotificationService>();
     final apts = tapDetails.appointments;
     if (apts == null || apts.isEmpty) return;
     final appointment = apts.first;
     final practice = _getPracticeWithId(appointment.id);
-    await practice.onTap(context, widget.database);
+    await practice.onTap(context, widget.database, appInfo, notifications);
   }
 
   void _tappedEmptySlot(CalendarTapDetails tapDetails) async {
@@ -499,6 +503,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       [],
       0,
       [],
+      true,
     );
     await widget.database.addPractice(practice);
     _resetFields();
@@ -530,7 +535,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
         startTime: practice.startTime,
         endTime: practice.endTime,
         subject: '${practice.name} $sub',
-        color: theme.colorScheme.primary,
+        color: practice.isLocked ? Colors.grey : theme.colorScheme.primary,
       );
       appointments.add(apt);
     }

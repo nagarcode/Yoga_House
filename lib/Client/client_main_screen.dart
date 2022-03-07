@@ -47,6 +47,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
             children: [
               _logo(),
               _homepageText(theme, widget.appInfo),
+              const Divider(),
               if (widget.practicesRegisteredTo.isNotEmpty) _practicesText,
               if (widget.practicesRegisteredTo.isNotEmpty)
                 _practiceCardsListView(),
@@ -67,7 +68,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
   Widget get _registerToPracticeButton {
     final userInfo = context.read<UserInfo>();
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 85, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 105, vertical: 8),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           shape:
@@ -130,11 +131,11 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
       managerView: false,
       data: practice,
       registerCallback: practice.registerToPracticeCallback(
-          userInfo, widget.database, context),
+          userInfo, widget.database, context, false),
       waitingListCallback: () => {},
       isRegistered: practice.isUserRegistered(userInfo.uid),
       unregisterCallback: practice.unregisterFromPracticeCallback(
-          userInfo, widget.database, context, widget.appInfo),
+          userInfo, widget.database, context, widget.appInfo, false),
     );
   }
 
@@ -152,9 +153,16 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
     final theme = Theme.of(context);
     final dateTime = DateFormat.yMd('he_IL').parse(groupByValue);
     final verbouseDay = Utils.vebouseDayFromDateTime(dateTime);
-    return Text('$verbouseDay, $groupByValue',
-        style: theme.textTheme.bodyText1!.copyWith(fontSize: 18),
-        textAlign: TextAlign.center);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 90),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Text('$verbouseDay, $groupByValue',
+            style: theme.textTheme.bodyText2!
+                .copyWith(fontSize: 18, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center),
+      ),
+    );
   }
 
   Widget _haColumn(UserInfo userInfo, ThemeData theme) {

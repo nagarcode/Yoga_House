@@ -23,6 +23,7 @@ class Practice {
   final List<UserInfo> registeredParticipants;
   final int numOfUsersInWaitingList;
   final List<UserInfo> waitingList;
+  final bool isLocked;
 
   int get numOfRegisteredParticipants => registeredParticipants.length;
 
@@ -40,6 +41,7 @@ class Practice {
     this.registeredParticipants,
     this.numOfUsersInWaitingList,
     this.waitingList,
+    this.isLocked,
   );
   factory Practice.fromMap(Map<String, dynamic> data) {
     List<UserInfo> registered = _extractRegisteredUsers(data);
@@ -59,6 +61,7 @@ class Practice {
       registered,
       data['numOfUsersInWaitingList'],
       waitingList,
+      data['isLocked'] ?? false,
     );
   }
 
@@ -107,6 +110,7 @@ class Practice {
       'numOfRegisteredParticipants': numOfRegisteredParticipants,
       'registeredParticipants': registeredParticipants,
       'waitingList': waitingList,
+      'isLocked': isLocked,
     };
   }
 
@@ -143,6 +147,7 @@ class Practice {
     int? numOfUsersInWaitingList,
     int? numOfRegisteredParticipants,
     List<UserInfo>? waitingList,
+    bool? isLocked,
   }) {
     return Practice(
       id ?? this.id,
@@ -158,31 +163,41 @@ class Practice {
       registeredParticipants ?? this.registeredParticipants,
       numOfUsersInWaitingList ?? this.numOfUsersInWaitingList,
       waitingList ?? this.waitingList,
+      isLocked ?? this.isLocked,
     );
   }
 
-  Function registerToPracticeCallback(UserInfo userInfo,
-      FirestoreDatabase database, BuildContext screenContext) {
+  Function registerToPracticeCallback(
+      UserInfo userInfo,
+      FirestoreDatabase database,
+      BuildContext screenContext,
+      bool isManagerView) {
     final notifications = screenContext.read<NotificationService>();
     // final appInfo = screenContext.read<AppInfo>();
     return () async {
       try {
-        if (userInfo.isManager) {
-          throw UnimplementedError('needs implementation');
-        } else {
-          if (!userInfo.hasPunchcard) {
-            await _showNoPunchcardDialog(screenContext);
-            return;
-          }
-          if (!userInfo.hasPunchesLeft) {
-            await _showNoPunchesLeftDialog(screenContext);
-            return;
-          }
-          final didRequestRegister =
-              await _promtRegistrationConfirmation(screenContext);
-          if (didRequestRegister) {
-            database.registerUserToPracticeTransaction(userInfo, id);
+        if (!userInfo.hasPunchcard) {
+          await _showNoPunchcardDialog(screenContext);
+          return;
+        }
+        if (!userInfo.hasPunchesLeft) {
+          await _showNoPunchesLeftDialog(screenContext);
+          return;
+        }
+        if (isLocked) {
+          await _showLockedDialog(screenContext);
+          return;
+        }
+        final didRequestRegister =
+            await _promtRegistrationConfirmation(screenContext);
+        if (didRequestRegister) {
+          await _showRegisteredDialog(screenContext);
+          database.registerUserToPracticeTransaction(userInfo, id);
+          if (!isManagerView) {
             notifications.setPracticeLocalNotification(this, 24);
+          }
+          if (isManagerView) {
+            notifications.sendManagerRegisteredYouNotification(userInfo, this);
           }
         }
       } on Exception catch (_) {
@@ -194,19 +209,28 @@ class Practice {
     };
   }
 
-  Function unregisterFromPracticeCallback(UserInfo userInfo,
-      FirestoreDatabase database, BuildContext screenContext, AppInfo appInfo) {
+  Function unregisterFromPracticeCallback(
+      UserInfo userInfo,
+      FirestoreDatabase database,
+      BuildContext screenContext,
+      AppInfo appInfo,
+      bool isManagerView) {
     return () async {
+      final notifications = screenContext.read<NotificationService>();
+
       try {
-        if (userInfo.isManager) {
-          throw UnimplementedError('needs implementation');
-        } else {
-          final didRequestUnregister =
-              await _promtUnregisterConfirmation(screenContext);
-          if (didRequestUnregister) {
-            bool shouldRestorePunch = isEnoughTimeLeftToCancel(appInfo);
-            database.unregisterFromPracticeTransaction(
-                userInfo, this, shouldRestorePunch, appInfo);
+        final didRequestUnregister =
+            await _promtUnregisterConfirmation(screenContext, isManagerView);
+        if (didRequestUnregister) {
+          bool shouldRestorePunch = isEnoughTimeLeftToCancel(appInfo);
+          database.unregisterFromPracticeTransaction(
+              userInfo, this, shouldRestorePunch, appInfo, !isManagerView);
+          if (isManagerView) {
+            notifications.sendManagerUnregisteredYouNotification(
+                userInfo, this);
+          }
+          if (!isManagerView) {
+            notifications.cancelPracticeLocalNotification(this);
           }
         }
       } on Exception catch (_) {
@@ -243,13 +267,16 @@ class Practice {
     return ans == OkCancelResult.ok;
   }
 
-  Future<bool> _promtUnregisterConfirmation(BuildContext screenContext) async {
+  Future<bool> _promtUnregisterConfirmation(
+      BuildContext screenContext, bool isManagerView) async {
     final appInfo = screenContext.read<AppInfo>();
     final minHours = appInfo.minHoursToCancel;
-    final notEnoughTimeText =
-        'חשוב לשים לב! שיעור זה יתקיים בעוד פחות מ$minHours שעות ולכן במידה ותבטל את רישומך לא יוחזר לך הניקוב לכרטיסיה. האם לבטל בכל זאת?';
-    const enoughTimeText =
-        'איזה כיף שביטלת את הרישום בזמן! ביטול זה הוא ללא חיוב. האם לבטל את הרישום?';
+    final notEnoughTimeText = isManagerView
+        ? 'שימי לב, לא יוחזר ללקוח ניקוב משום שהביטול לא מספיק זמן מראש. במידה והלקוח צריך לקבל ניקוב בחזרה אנא הזיני לו אחד מעמוד הלקוחות. האם לבטל את רישום הלקוח?'
+        : 'חשוב לשים לב! שיעור זה יתקיים בעוד פחות מ$minHours שעות ולכן במידה ותבטל את רישומך לא יוחזר לך הניקוב לכרטיסיה. האם לבטל בכל זאת?';
+    final enoughTimeText = isManagerView
+        ? 'הלקוח  יקבל החזר ניקוב. האם לבטל את רישומו?'
+        : 'איזה כיף שביטלת את הרישום בזמן! ביטול זה הוא ללא חיוב. האם לבטל את הרישום?';
     final ans = await showOkCancelAlertDialog(
       isDestructiveAction: true,
       context: screenContext,
@@ -296,17 +323,35 @@ class Practice {
         okLabel: 'אישור');
   }
 
-  Future<void> onTap(BuildContext context, FirestoreDatabase database) async {
+  Future<void> onTap(BuildContext context, FirestoreDatabase database,
+      AppInfo appInfo, NotificationService notifications) async {
     await showDialog(
         context: context,
-        builder: (context) => Utils.cardSelectionDialog(
-            context, _tapChoiceTiles(context, database)));
+        builder: (context) => Utils.cardSelectionDialog(context,
+            _tapChoiceTiles(context, database, appInfo, notifications)));
   }
 
   List<CardSelectionTile> _tapChoiceTiles(
-      BuildContext context, FirestoreDatabase database) {
+      BuildContext context,
+      FirestoreDatabase database,
+      AppInfo appInfo,
+      NotificationService notifications) {
     final theme = Theme.of(context);
     return [
+      if (!isLocked)
+        CardSelectionTile(
+          context,
+          'נעל שיעור',
+          Icon(Icons.lock_outline, color: theme.colorScheme.primary),
+          (context) => _lock(context, database),
+        ),
+      if (isLocked)
+        CardSelectionTile(
+          context,
+          'פתח שיעור להרשמה',
+          Icon(Icons.lock_open_outlined, color: theme.colorScheme.primary),
+          (context) => _unlock(context, database),
+        ),
       CardSelectionTile(
         context,
         'שלח הודעה לרשומים',
@@ -324,14 +369,20 @@ class Practice {
         context,
         'בטל שיעור',
         Icon(Icons.delete_outline_outlined, color: theme.colorScheme.primary),
-        (context) => _delete(context, database),
+        (context) => _delete(context, database, appInfo, notifications),
       ),
     ];
   }
 
-  _delete(BuildContext context, FirestoreDatabase database) async {
+  _delete(BuildContext context, FirestoreDatabase database, AppInfo appInfo,
+      NotificationService notifications) async {
     final shouldDelete = await _didRequestDelete(context);
     if (shouldDelete) {
+      for (var user in registeredParticipants) {
+        await database.unregisterFromPracticeTransaction(
+            user, this, true, appInfo, false);
+        notifications.sendManagerUnregisteredYouNotification(user, this);
+      }
       Navigator.of(context).pop();
       await database.deletePractice(this);
     }
@@ -343,7 +394,7 @@ class Practice {
         isDestructiveAction: true,
         title: 'ביטול שיעור',
         message:
-            'האם לבטל שיעור זה? במידה ויש מתאמנים רשומים, מומלץ לשלוח להם תחילה הודעה על ביטול.');
+            'האם לבטל שיעור זה? ניקובים יוחזרו לרשומים. מומלץ גם לשלוח להם הודעה על ביטול.');
     return didRequestDelete == OkCancelResult.ok;
   }
 
@@ -408,9 +459,13 @@ class Practice {
   }
 
   Future<void> leaveWaitingList(
-      FirestoreDatabase database, UserInfo user) async {
+      FirestoreDatabase database, UserInfo user, BuildContext context) async {
     if (startTime.isBefore(DateTime.now())) return;
-    return await database.removeUserFromWaitingList(this, user);
+    await database.removeUserFromWaitingList(this, user);
+    await showOkAlertDialog(
+        context: context,
+        message: 'בוטל רישומך לרשימת ההמתנה של שיעור זה.',
+        title: 'הצלחה');
   }
 
   Practice withUserAddedToWaitingList(UserInfo userInfo) {
@@ -429,6 +484,50 @@ class Practice {
 
   bool isInWaitingList(UserInfo user) {
     return waitingList.any((element) => element.uid == user.uid);
+  }
+
+  _showRegisteredDialog(BuildContext context) async {
+    await showOkAlertDialog(
+        context: context,
+        title: 'רישום מאושר',
+        message: 'הרישום התבצע בהצלחה.');
+  }
+
+  _lock(BuildContext context, FirestoreDatabase database) async {
+    final bool shouldLock = await _promtShouldLock(context);
+    if (shouldLock) await database.lockPractice(this);
+    Navigator.of(context).pop();
+  }
+
+  _unlock(BuildContext context, FirestoreDatabase database) async {
+    final bool shouldUnlock = await _promtShouldUnlock(context);
+    if (shouldUnlock) await database.unlockPractice(this);
+    Navigator.of(context).pop();
+  }
+
+  Future<bool> _promtShouldUnlock(BuildContext context) async {
+    final ans = await showOkCancelAlertDialog(
+        context: context,
+        title: 'פתח להרשמה',
+        message:
+            'האם לפתוח שיעור זה להרשמה? לקוחות יוכלו להירשם מרגע זה והלאה.');
+    return ans == OkCancelResult.ok;
+  }
+
+  Future<bool> _promtShouldLock(BuildContext context) async {
+    final ans = await showOkCancelAlertDialog(
+        context: context,
+        title: 'נעל שיעור',
+        message: 'האם לנעול שיעור זה? לקוחות לא יוכלו להירשם מרגע זה והלאה.',
+        isDestructiveAction: true);
+    return ans == OkCancelResult.ok;
+  }
+
+  _showLockedDialog(BuildContext screenContext) async {
+    await showOkAlertDialog(
+        context: screenContext,
+        title: 'שיעור נעול',
+        message: 'שיעור זה נעול ולא ניתן להירשם אליו.');
   }
 }
 

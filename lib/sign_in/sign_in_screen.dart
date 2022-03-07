@@ -66,7 +66,7 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
           ),
           SingleChildScrollView(
-            physics: const NeverScrollableScrollPhysics(),
+            // physics: const NeverScrollableScrollPhysics(),
             child: SizedBox(
               height: deviceSize.height,
               width: deviceSize.width,

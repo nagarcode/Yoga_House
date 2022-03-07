@@ -97,6 +97,7 @@ class _ManagementScreenState extends State<ManagementScreen> {
           titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           leading: Icon(Icons.person_outline, color: iconColor),
           onPressed: (context) async {
+            // ignore: prefer_const_constructors
             await pushNewScreen(context, screen: ClientHome());
           },
         ),

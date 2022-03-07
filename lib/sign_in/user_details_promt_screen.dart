@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:yoga_house/Services/auth.dart';
 import 'package:yoga_house/Services/database.dart';
+import 'package:yoga_house/Services/notifications.dart';
 import 'package:yoga_house/common_widgets/custom_button.dart';
 
 class UserDetailsPromtScreen extends StatefulWidget {
@@ -94,7 +96,7 @@ class _UserDetailsPromtScreenState extends State<UserDetailsPromtScreen> {
   }
 
   _setNameButton() {
-    // final sharedPrefs = context.read<SharedPrefs>();
+    final notifications = context.read<NotificationService>();
     return CustomButton(
         color: null,
         msg: "המשך",
@@ -112,6 +114,8 @@ class _UserDetailsPromtScreenState extends State<UserDetailsPromtScreen> {
                     '${firstName.text} ${lastName.text}',
                     user.phoneNumber,
                     email.text);
+                notifications.sendNewUserAdminNotification(
+                    firstName.text + ' ' + lastName.text);
                 // _setIsLoading(false);
                 // Navigator.of(context).pushReplacement(MaterialPageRoute(
                 //   builder: (context) => LandingPage(
@@ -146,6 +150,7 @@ class _UserDetailsPromtScreenState extends State<UserDetailsPromtScreen> {
     return Padding(
       padding: const EdgeInsets.all(12.0),
       child: TextFormField(
+        keyboardType: TextInputType.emailAddress,
         validator: (email) => _emailValidator(email),
         style: TextStyle(color: theme.colorScheme.secondaryVariant),
         maxLength: 30,
