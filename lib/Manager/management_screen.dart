@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
@@ -28,7 +27,10 @@ class _ManagementScreenState extends State<ManagementScreen> {
         actions: [_signOutBtn()],
       ),
       body: SettingsList(
-          backgroundColor: Colors.white, sections: [_managementSection()]),
+          lightTheme:
+              const SettingsThemeData(settingsListBackground: Colors.white),
+          // backgroundColor: Colors.white,
+          sections: [_managementSection()]),
     );
   }
 
@@ -48,53 +50,52 @@ class _ManagementScreenState extends State<ManagementScreen> {
     final iconColor = Theme.of(context).colorScheme.primary;
     final theme = Theme.of(context);
     return SettingsSection(
-      title: 'ניהול',
-      titleTextStyle: theme.textTheme.bodyText1,
+      title: Text('ניהול', style: theme.textTheme.bodyText1),
       tiles: [
         SettingsTile(
-          title: 'רשימת השיעורים',
+          title: Text('רשימת השיעורים',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading: Icon(Icons.run_circle_outlined, color: iconColor),
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onPressed: (context) async {
             await RegisterToPracticeScreen.pushToTabBar(
                 context, true, userInfo);
           },
         ),
         SettingsTile(
-          title: 'תבניות שיעור',
+          title: Text('תבניות שיעור',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading: Icon(Icons.run_circle_outlined, color: iconColor),
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onPressed: (context) async {
             await PracticeTemplatesScreen.pushToTabBar(context);
           },
         ),
         SettingsTile(
-          title: 'שלח הודעה ללקוחות',
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
+          title: Text('שלח הודעה ללקוחות',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading: Icon(Icons.edit_notifications_outlined, color: iconColor),
           onPressed: (context) async {
             await HomepageTextScreen.pushToTabBar(context, false);
           },
         ),
         SettingsTile(
-          title: 'הודעה בדף הבית',
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
+          title: Text('הודעה בדף הבית',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading: Icon(Icons.message_outlined, color: iconColor),
           onPressed: (context) async {
             await HomepageTextScreen.pushToTabBar(context, true);
           },
         ),
         SettingsTile(
-          title: 'היסטוריית שיעורים',
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
+          title: Text('היסטוריית שיעורים',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading: Icon(Icons.history_toggle_off_rounded, color: iconColor),
           onPressed: (context) async {
             await PracticesHistoryScreen.pushToTabBar(context, null, true);
           },
         ),
         SettingsTile(
-          title: 'מבט לדף לקוחות',
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
+          title: Text('מבט לדף לקוחות',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading: Icon(Icons.person_outline, color: iconColor),
           onPressed: (context) async {
             // ignore: prefer_const_constructors
@@ -108,8 +109,8 @@ class _ManagementScreenState extends State<ManagementScreen> {
         //   onPressed: (context) {}, //TODO next update!
         // ),
         SettingsTile(
-          title: 'התראות',
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
+          title: Text('התראות',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading:
               Icon(Icons.notification_important_outlined, color: iconColor),
           onPressed: (context) async {

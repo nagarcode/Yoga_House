@@ -115,16 +115,17 @@ class NotificationService {
   int idFromStartTime(DateTime startTime) {
     final dayOfMonth = startTime.day;
     final month = startTime.month;
-    final minuteInHour = startTime.minute;
-    final hourInDay = startTime.hour;
+    // final minuteInHour = startTime.minute;
+    // final hourInDay = startTime.hour;
     final year = startTime.year % 100;
     final yearWithMonth = concatTwoDigits(year, month);
     final yearWithMonthWithDay = concatTwoDigits(yearWithMonth, dayOfMonth);
-    final yearWithMonthWithDayWithHour =
-        concatTwoDigits(yearWithMonthWithDay, hourInDay);
-    final yearWithMonthWithDayWithHourWithMinute =
-        concatTwoDigits(yearWithMonthWithDayWithHour, minuteInHour);
-    return yearWithMonthWithDayWithHourWithMinute;
+    // final yearWithMonthWithDayWithHour =
+    //     concatTwoDigits(yearWithMonthWithDay, hourInDay);
+    // final yearWithMonthWithDayWithHourWithMinute =
+    //     concatTwoDigits(yearWithMonthWithDayWithHour, minuteInHour);
+    debugPrint(yearWithMonthWithDay.toString());
+    return yearWithMonthWithDay;
   }
 
   int concatTwoDigits(int original, int toConcat) {

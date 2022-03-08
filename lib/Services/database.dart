@@ -340,13 +340,30 @@ class FirestoreDatabase {
     });
   }
 
+  // Future<bool> organizePracticesTransaction(List<Practice> allPractices) async {
+  //   final preMoveRefs = pastPracticesRefs(allPractices);
+  //   if (preMoveRefs.isEmpty) return true;
+  //   final postMovePracticesToRefs = _postMovePracticesToRefs(allPractices);
+  //   return await _instance.runTransaction<bool>((transaction) async {
+  //     for (var practice in postMovePracticesToRefs.keys) {
+  //       _transactionAddFieldToSingleDoc(
+  //           reference: postMovePracticesToRefs[practice]!,
+  //           fieldId: practice.id,
+  //           field: practice.toMap(),
+  //           transaction: transaction);
+  //     }
+  //     for (var ref in preMoveRefs) {
+  //       transaction.delete(ref);
+  //     }
+  //     return true;
+  //   });
+  // }
   Future<bool> organizePracticesTransaction(List<Practice> allPractices) async {
     final preMoveRefs = pastPracticesRefs(allPractices);
     if (preMoveRefs.isEmpty) return true;
     final postMovePracticesToRefs = _postMovePracticesToRefs(allPractices);
     return await _instance.runTransaction<bool>((transaction) async {
       for (var practice in postMovePracticesToRefs.keys) {
-        // transaction.set(postMovePracticesToRefs[practice]!, practice.toMap());
         _transactionAddFieldToSingleDoc(
             reference: postMovePracticesToRefs[practice]!,
             fieldId: practice.id,
@@ -431,6 +448,15 @@ class FirestoreDatabase {
     debugPrint('Adding field $fieldId to a singleDoc');
     final SetOptions setOptions = SetOptions(merge: true);
     transaction.set(reference, {fieldId: field}, setOptions);
+  }
+
+  Future<void> _transactionAddDoc({
+    required DocumentReference reference,
+    required Map<String, dynamic> doc,
+    required Transaction transaction,
+  }) async {
+    debugPrint('Adding doc');
+    transaction.set(reference, doc);
   }
 
   Future<void> addNotificationToUser(NotificationData notification) async {

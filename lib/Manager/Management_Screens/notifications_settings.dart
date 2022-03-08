@@ -44,7 +44,8 @@ class AdminNotificationsSettingsState
           title: Utils.appBarTitle(context, 'התראות'),
         ),
         body: SettingsList(
-          backgroundColor: Colors.white,
+          lightTheme:
+              const SettingsThemeData(settingsListBackground: Colors.white),
           sections: [_notificationsSection()],
         ));
   }
@@ -52,9 +53,9 @@ class AdminNotificationsSettingsState
   SettingsSection _notificationsSection() {
     final theme = Theme.of(context);
     return SettingsSection(
-      titleTextStyle:
-          theme.textTheme.subtitle1?.copyWith(color: theme.colorScheme.primary),
-      title: 'אני רוצה לקבל התראות כאשר:',
+      title: Text('אני רוצה לקבל התראות כאשר:',
+          style: theme.textTheme.subtitle1
+              ?.copyWith(color: theme.colorScheme.primary)),
       tiles: [
         _clientRegisteredToPracticeTile(),
         _clientCancelledTile(),
@@ -66,8 +67,8 @@ class AdminNotificationsSettingsState
     final notifications = context.read<NotificationService>();
     final theme = Theme.of(context);
     return SettingsTile.switchTile(
-      title: 'לקוח נרשם לשיעור',
-      titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
+      title: Text('לקוח נרשם לשיעור',
+          style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
       onToggle: (newVal) {
         widget.prefs.toggleAdminNotificationClientRegistered(newVal);
         if (newVal) {
@@ -80,8 +81,8 @@ class AdminNotificationsSettingsState
               widget.prefs.adminNotificationClientRegistered.getValue();
         });
       },
-      switchValue: clientRegistered,
-      switchActiveColor: theme.colorScheme.primary,
+      initialValue: clientRegistered,
+      activeSwitchColor: theme.colorScheme.primary,
     );
   }
 
@@ -89,8 +90,8 @@ class AdminNotificationsSettingsState
     final notifications = context.read<NotificationService>();
     final theme = Theme.of(context);
     return SettingsTile.switchTile(
-      title: 'לקוח ביטל רישום לשיעור',
-      titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
+      title: Text('לקוח ביטל רישום לשיעור',
+          style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
       onToggle: (newVal) {
         if (newVal) {
           notifications.adminRegisterToUserCancelledNotifications();
@@ -103,8 +104,8 @@ class AdminNotificationsSettingsState
               widget.prefs.adminNotificationClientCancelled.getValue();
         });
       },
-      switchValue: clientCancelled,
-      switchActiveColor: theme.colorScheme.primary,
+      initialValue: clientCancelled,
+      activeSwitchColor: theme.colorScheme.primary,
     );
   }
 }

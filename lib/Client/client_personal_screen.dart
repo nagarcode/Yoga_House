@@ -59,10 +59,13 @@ class _ClientPersonalScreenState extends State<ClientPersonalScreen> {
         title: Utils.appBarTitle(context, 'אישי'),
         actions: [_signOutBtn()],
       ),
-      body: SettingsList(backgroundColor: Colors.white, sections: [
-        _personalSection(),
-        if (_isTomer()) _tomerSection(),
-      ]),
+      body: SettingsList(
+          lightTheme:
+              const SettingsThemeData(settingsListBackground: Colors.white),
+          sections: [
+            _personalSection(),
+            if (_isTomer()) _tomerSection(),
+          ]),
     );
   }
 
@@ -81,39 +84,43 @@ class _ClientPersonalScreenState extends State<ClientPersonalScreen> {
     final iconColor = Theme.of(context).colorScheme.primary;
     final theme = Theme.of(context);
     return SettingsSection(
-      title: '',
-      titleTextStyle: theme.textTheme.bodyText1,
+      // title: '',
+      // titleTextStyle: theme.textTheme.bodyText1,
       tiles: [
         SettingsTile(
-          title: 'פרופיל וכרטיסיה',
+          title: Text(
+            'פרופיל וכרטיסיה',
+            style: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
+          ),
           leading: Icon(Icons.card_membership_outlined, color: iconColor),
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onPressed: (context) async {
             await ClientProfileScreen.pushToTabBar(
                 context, widget.user.uid, false, [widget.user]);
           },
         ),
         SettingsTile(
-          title: 'היסטוריית כרטיסיות',
+          title: Text(
+            'היסטוריית כרטיסיות',
+            style: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
+          ),
           leading: Icon(Icons.history_toggle_off_outlined, color: iconColor),
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onPressed: (context) async {
             await PunchcardHistoryScreen.pushToTabBar(context, widget.user);
           },
         ),
         SettingsTile(
-          title: 'היסטוריית שיעורים',
+          title: Text('היסטוריית שיעורים',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading: Icon(Icons.run_circle_outlined, color: iconColor),
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onPressed: (context) async {
             await PracticesHistoryScreen.pushToTabBar(
                 context, widget.user, false);
           },
         ),
         SettingsTile(
-          title: 'הצהרת בריאות',
+          title: Text('הצהרת בריאות',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading: Icon(Icons.health_and_safety_outlined, color: iconColor),
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onPressed: (context) async {
             await HealthAssuranceScreen.pushToTabBar(context, widget.user);
           },
@@ -131,21 +138,21 @@ class _ClientPersonalScreenState extends State<ClientPersonalScreen> {
     final iconColor = Theme.of(context).colorScheme.primary;
     final theme = Theme.of(context);
     return SettingsSection(
-      title: 'האיזור של תומר',
+      title: const Text('האיזור של תומר'),
       // titleTextStyle: theme.textTheme.bodyText1,
       tiles: [
         SettingsTile.switchTile(
-          title: 'השבת מנהל',
-          switchValue: isManagerTerminated,
+          title: Text('השבת מנהל',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
+          initialValue: isManagerTerminated,
           leading: Icon(Icons.card_membership_outlined, color: iconColor),
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onToggle: _toggleTerminateManager,
         ),
         SettingsTile.switchTile(
-          title: 'השבת לקוחות',
-          switchValue: isClientTerminated,
+          title: Text('השבת לקוחות',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
+          initialValue: isClientTerminated,
           leading: Icon(Icons.history_toggle_off_outlined, color: iconColor),
-          titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
           onToggle: _toggleTerminateClients,
         ),
       ],
