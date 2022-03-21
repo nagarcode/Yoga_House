@@ -86,23 +86,22 @@ class _RepeatingPracticeCardState extends State<RepeatingPracticeCard> {
     if (widget.data.registeredParticipants.length >=
         widget.data.maxParticipants) {
       await displayTooManyRegisteredError();
-      return;
+      return false;
     }
     final database = context.read<FirestoreDatabase>();
     await database.addUserToRepeatingPractice(widget.userToAdd, widget.data);
+    return true;
   }
 
   _usersList() {
     final database = context.read<FirestoreDatabase>();
     final theme = Theme.of(context);
     final users = widget.data.registeredParticipants;
-    final desc = widget.data.description;
-    var descText =
-        Text(desc, style: theme.textTheme.subtitle1!.copyWith(fontSize: 15));
     const registeredText = Text('רשומים:');
-    final rows = <Widget>[descText, registeredText];
-    if (users.isEmpty)
-      return Text(desc + '\n' + 'טרם רשמת מתאמנים לשיעור קבוע זה');
+    final rows = <Widget>[registeredText];
+    if (users.isEmpty) {
+      return const Text('טרם רשמת מתאמנים לשיעור קבוע זה');
+    }
     for (var user in users) {
       final tile = ListTile(
         dense: true,
@@ -112,7 +111,6 @@ class _RepeatingPracticeCardState extends State<RepeatingPracticeCard> {
           if (await promtRemoveUser(user.name)) {
             database.removeUserFromRepeatingPractice(user, widget.data);
             await showConfirmation('הצלחה', 'ההסרה התבצעה בהצלחה');
-            Navigator.of(context).pop();
           }
         },
       );
@@ -148,9 +146,14 @@ class _RepeatingPracticeCardState extends State<RepeatingPracticeCard> {
   }
 
   verifyAndAddUser() async {
+    if (userAlreadyRegistered()) {
+      displayAlreadyRegistered();
+      return;
+    }
     if (await promtAddUserToPractice()) {
-      addUserToPractice();
-      await showConfirmation('הצלחה', 'ההוספה התבצעה בהצלחה');
+      if (await addUserToPractice()) {
+        await showConfirmation('הצלחה', 'ההוספה התבצעה בהצלחה');
+      }
       Navigator.of(context).pop();
     }
   }
@@ -169,6 +172,19 @@ class _RepeatingPracticeCardState extends State<RepeatingPracticeCard> {
       title: 'שגיאה',
       message:
           'מספר המתאמנים שרשמת לשיעור קבוע זה עולה על מספר המתאמנים המקסימלי שהגדרת לאימון.',
+    );
+  }
+
+  bool userAlreadyRegistered() {
+    return widget.data.registeredParticipants
+        .any((element) => element.uid == widget.userToAdd!.uid);
+  }
+
+  void displayAlreadyRegistered() async {
+    await showOkAlertDialog(
+      context: context,
+      title: 'שגיאה',
+      message: 'מתאמן זה כבר שייך לרשימת המתאמנים באימון קבוע זה.',
     );
   }
 }
