@@ -41,12 +41,12 @@ class PracticesHistoryScreen extends StatefulWidget {
 }
 
 class _PracticesHistoryScreenState extends State<PracticesHistoryScreen> {
-  late Future<List<Practice>> allPracticesFuture;
+  late Future<Map<String, List<Practice>>> allPracticesFuture;
   Widget get _noPracticesWidget =>
       const Center(child: Text('אין שיעורים זמינים'));
   @override
   void initState() {
-    allPracticesFuture = widget.database.practicesHistoryFuture();
+    allPracticesFuture = widget.database.practicesHistoryByMonthsFuture();
     super.initState();
   }
 
@@ -54,7 +54,7 @@ class _PracticesHistoryScreenState extends State<PracticesHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Utils.appBarTitle(context, 'היסטוריית שיעורים')),
-      body: FutureBuilder<List<Practice>>(
+      body: FutureBuilder<Map<String, List<Practice>>>(
           future: allPracticesFuture,
           builder: (context, snapshot) {
             if (Utils.connectionStateInvalid(snapshot)) {
@@ -64,7 +64,8 @@ class _PracticesHistoryScreenState extends State<PracticesHistoryScreen> {
             if (practices == null) {
               return const SplashScreen();
             }
-            return _practiceCardsListView(practices);
+            final practicesList = _getPractices(practices);
+            return _practiceCardsListView(practicesList);
           }),
     );
   }
@@ -127,5 +128,15 @@ class _PracticesHistoryScreenState extends State<PracticesHistoryScreen> {
     return allPractices
         .where((practice) => practice.isUserRegistered(userToDisplay.uid))
         .toList();
+  }
+
+  List<Practice> _getPractices(Map<String, List<Practice>> monthsToPractices) {
+    final result = <Practice>[];
+    monthsToPractices.forEach((key, list) {
+      if (list.isNotEmpty) {
+        result.addAll(list);
+      }
+    });
+    return result;
   }
 }

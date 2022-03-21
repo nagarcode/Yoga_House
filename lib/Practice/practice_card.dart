@@ -106,9 +106,10 @@ class _PracticeCardState extends State<PracticeCard> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // if (!widget.managerView)
-        Expanded(
-          child: _registerOrWaitingListButton(theme, isFull),
-        ),
+        if (!widget.isHistory)
+          Expanded(
+            child: _registerOrWaitingListButton(theme, isFull),
+          ),
         _registeredParticipants(registered, maxParticipants, theme, isFull),
       ],
     );

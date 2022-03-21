@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:yoga_house/Practice/practice_template.dart';
 
 class PracticeTemplateCard extends StatelessWidget {
+  final bool isRepeatingPractice;
   final PracticeTemplate data;
   final Function deleteTemplateCallback;
   final bool selectionScreen;
   final Function(PracticeTemplate)? onClicked;
-  const PracticeTemplateCard(this.data, this.deleteTemplateCallback,
-      {Key? key, this.selectionScreen = false, this.onClicked})
-      : super(key: key);
+  const PracticeTemplateCard(
+    this.data,
+    this.deleteTemplateCallback, {
+    Key? key,
+    this.selectionScreen = false,
+    this.onClicked,
+    this.isRepeatingPractice = false,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

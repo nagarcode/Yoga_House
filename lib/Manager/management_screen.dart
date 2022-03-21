@@ -7,6 +7,7 @@ import 'package:yoga_house/Client/register_to_practice_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/homepage_message_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/notifications_settings.dart';
 import 'package:yoga_house/Manager/Management_Screens/practices_history_screen.dart';
+import 'package:yoga_house/Manager/Management_Screens/repeating_practices_screen.dart';
 import 'package:yoga_house/Practice/practice_templates_screen.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
@@ -62,6 +63,15 @@ class _ManagementScreenState extends State<ManagementScreen> {
           },
         ),
         SettingsTile(
+          title: Text('שיעורים קבועים',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
+          leading: Icon(Icons.loop_outlined, color: iconColor),
+          onPressed: (context) async {
+            // ignore: prefer_const_constructors
+            await RepeatingPracticesScreen.pushToTabBar(context, null);
+          },
+        ),
+        SettingsTile(
           title: Text('תבניות שיעור',
               style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading: Icon(Icons.run_circle_outlined, color: iconColor),
@@ -102,6 +112,7 @@ class _ManagementScreenState extends State<ManagementScreen> {
             await pushNewScreen(context, screen: ClientHome());
           },
         ),
+
         // SettingsTile(
         //   title: 'סטטיסטיקה חודשית',
         //   titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),

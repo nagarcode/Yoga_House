@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:yoga_house/Canellation/cancellation.dart';
 import 'package:yoga_house/Client/health_assurance.dart';
 import 'package:yoga_house/Practice/practice.dart';
+import 'package:yoga_house/Practice/repeateng_practice.dart';
 import 'package:yoga_house/Services/auth.dart';
 import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/common_widgets/punch_card.dart';
@@ -115,6 +116,11 @@ class UserInfo {
     };
   }
 
+  @override
+  String toString() {
+    return 'name: $name';
+  }
+
   UserInfo copyWith(
       {String? name,
       String? phoneNumber,
@@ -221,6 +227,8 @@ class UserInfo {
   isTomer() {
     return phoneNumber == tomersPhone;
   }
+
+  
 
   // bool isRegisteredToPractice(String practiceID) {
   //   for (var practice in practicesRegistered) {
