@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:yoga_house/Practice/repeateng_practice.dart';
 import 'package:yoga_house/Practice/repeating_practice_card.dart';
 import 'package:yoga_house/Services/database.dart';
-import 'package:yoga_house/Services/splash_screen.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
 
@@ -51,28 +50,18 @@ class _RepeatingPracticesScreenState extends State<RepeatingPracticesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final practices = context.watch<List<RepeatingPractice>>();
     return Scaffold(
-      appBar: AppBar(
-        title: Utils.appBarTitle(context, 'שיעורים קבועים'),
-      ),
-      body: StreamBuilder<List<RepeatingPractice>>(
-          stream: widget.database.repeatingPracticesStream(),
-          builder: (context, snapshot) {
-            if (Utils.connectionStateInvalid(snapshot)) {
-              return const SplashScreen();
-            }
-            _practices = snapshot.data;
-            final practices = _practices;
-            // print(_practices);
-            return Column(
-              children: [
-                _practiceCards(practices),
-                if (practices == null || practices.isEmpty) _noTemplatesText(),
-                _addTemplateIcon(),
-              ],
-            );
-          }),
-    );
+        appBar: AppBar(
+          title: Utils.appBarTitle(context, 'שיעורים קבועים'),
+        ),
+        body: Column(
+          children: [
+            _practiceCards(practices),
+            if (practices.isEmpty) _noTemplatesText(),
+            _addTemplateIcon(),
+          ],
+        ));
   }
 
   ListView _practiceCards(List<RepeatingPractice>? practices) {

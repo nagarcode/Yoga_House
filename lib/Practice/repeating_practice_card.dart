@@ -4,17 +4,24 @@ import 'package:yoga_house/Practice/repeateng_practice.dart';
 import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
 import 'package:provider/provider.dart';
+import 'package:yoga_house/common_widgets/punch_card.dart';
 
 class RepeatingPracticeCard extends StatefulWidget {
   final RepeatingPractice data;
   final Function deleteTemplateCallback;
   final UserInfo? userToAdd;
+  final bool selectionScreen;
+  final Function(RepeatingPractice)? onClicked;
+  final BuildContext? ctxt;
 
   const RepeatingPracticeCard(
     this.data,
     this.deleteTemplateCallback, {
     Key? key,
     this.userToAdd,
+    this.selectionScreen = false,
+    this.onClicked,
+    this.ctxt,
   }) : super(key: key);
 
   @override
@@ -43,38 +50,45 @@ class _RepeatingPracticeCardState extends State<RepeatingPracticeCard> {
   Widget _buildCard(BuildContext context) {
     final text =
         'רמה: ${widget.data.level}\nמיקום: ${widget.data.location}\nמשך: ${widget.data.durationMinutes} דקות\nמספר משתתפים מקסימלי: ${widget.data.maxParticipants}\nתאור: ${widget.data.description}';
-    if (widget.userToAdd == null) {
-      return ListTile(
-        title: Text(widget.data.name),
-        onTap: () => tileOnclick(),
-        subtitle: Column(
-          children: [
-            Text(text),
-            if (expand) _usersList(),
-          ],
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_forever_outlined),
-          onPressed: () => widget.deleteTemplateCallback(widget.data),
-        ),
+
+    return ListTile(
+      title: Text(widget.data.name),
+      onTap: expandCard,
+      subtitle: Column(
+        children: [
+          Text(text),
+          if (expand) _usersList(),
+        ],
+      ),
+      trailing: _deleteOrChooseButton(),
+    );
+  }
+
+  Widget _deleteOrChooseButton() {
+    if (widget.selectionScreen || widget.userToAdd != null) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(onPressed: _selectOnClick, child: const Text('בחר')),
+        ],
       );
     } else {
-      return ListTile(
-        title: Text(widget.data.name),
-        onTap: () => tileOnclick(),
-        subtitle: Column(
-          children: [
-            Text(text),
-            if (expand) _usersList(),
-          ],
-        ),
+      return IconButton(
+        icon: const Icon(Icons.delete_forever_outlined),
+        onPressed: () => widget.deleteTemplateCallback(widget.data),
       );
     }
   }
 
-  void tileOnclick() {
-    widget.userToAdd == null ? expandCard() : verifyAndAddUser();
+  _selectOnClick() {
+    widget.userToAdd != null
+        ? addUserToPractice()
+        : widget.onClicked!(widget.data);
   }
+
+  // void tileOnclick() {
+  //   widget.userToAdd == null ? expandCard() : verifyAndAddUser();
+  // }
 
   expandCard() {
     setState(() {
@@ -90,37 +104,50 @@ class _RepeatingPracticeCardState extends State<RepeatingPracticeCard> {
     }
     final database = context.read<FirestoreDatabase>();
     await database.addUserToRepeatingPractice(widget.userToAdd, widget.data);
+    if (!expand) expandCard();
     return true;
   }
 
   _usersList() {
-    final database = context.read<FirestoreDatabase>();
-    final theme = Theme.of(context);
+    final useContext = widget.ctxt ?? context;
+    final database = useContext.read<FirestoreDatabase>();
+    final theme = Theme.of(useContext);
     final users = widget.data.registeredParticipants;
     const registeredText = Text('רשומים:');
-    final rows = <Widget>[registeredText];
     if (users.isEmpty) {
       return const Text('טרם רשמת מתאמנים לשיעור קבוע זה');
     }
-    for (var user in users) {
-      final tile = ListTile(
-        dense: true,
-        title: Text('- ' + user.name,
-            style: theme.textTheme.subtitle1!.copyWith(fontSize: 13)),
-        onTap: () async {
-          if (await promtRemoveUser(user.name)) {
-            database.removeUserFromRepeatingPractice(user, widget.data);
-            await showConfirmation('הצלחה', 'ההסרה התבצעה בהצלחה');
-          }
-        },
-      );
-      rows.add(tile);
-    }
+    final rows = <Widget>[registeredText];
+    _generateUserTiles(users, theme, database, rows);
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       children: rows,
     );
+  }
+
+  List<Widget> _generateUserTiles(List<UserInfo> users, ThemeData theme,
+      FirestoreDatabase database, List<Widget> rows) {
+    for (var user in users) {
+      final tile = ListTile(
+        dense: true,
+        title: Text('- ' + user.name,
+            style: theme.textTheme.subtitle1!.copyWith(fontSize: 13)),
+        subtitle: _punchesLeft(user.punchcard),
+        trailing: TextButton(
+            onPressed: () => _removeUSerOnClick(user, database),
+            child: const Text('הסר')),
+      );
+      rows.add(tile);
+    }
+    return rows;
+  }
+
+  _removeUSerOnClick(UserInfo user, FirestoreDatabase database) async {
+    if (await promtRemoveUser(user.name)) {
+      database.removeUserFromRepeatingPractice(user, widget.data);
+      await showConfirmation('הצלחה', 'ההסרה התבצעה בהצלחה');
+    }
   }
 
   promtAddUserToPractice() async {
@@ -186,5 +213,10 @@ class _RepeatingPracticeCardState extends State<RepeatingPracticeCard> {
       title: 'שגיאה',
       message: 'מתאמן זה כבר שייך לרשימת המתאמנים באימון קבוע זה.',
     );
+  }
+
+  _punchesLeft(Punchcard? punchcard) {
+    final remaining = punchcard != null ? punchcard.punchesRemaining : 0;
+    return Text('ניקובים שנותרו: ${remaining}');
   }
 }
