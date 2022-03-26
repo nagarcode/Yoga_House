@@ -213,6 +213,7 @@ class _PracticeCardState extends State<PracticeCard> {
       padding: const EdgeInsets.all(4.0),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
+          primary: Color.fromARGB(255, 193, 110, 207),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
