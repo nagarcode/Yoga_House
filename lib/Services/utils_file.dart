@@ -15,6 +15,8 @@ class Utils {
         snapshot.connectionState != ConnectionState.done);
   }
 
+  static String heartEmoji() => '♡';
+
   static void signOut(BuildContext context) async {
     final auth = context.read<AuthBase>();
     final didRequestLeave = await showOkCancelAlertDialog(

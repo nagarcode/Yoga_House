@@ -94,7 +94,7 @@ class _PracticesHistoryScreenState extends State<PracticesHistoryScreen> {
       isInWaitingList: false,
       isHistory: true,
       database: database,
-      managerView: true,
+      managerView: widget.isManagerView,
       data: practice,
       registerCallback: () {},
       waitingListCallback: () {},

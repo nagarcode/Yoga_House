@@ -457,6 +457,10 @@ class Practice {
   Future<void> joinWaitingList(
       FirestoreDatabase database, UserInfo user, BuildContext context) async {
     if (startTime.isBefore(DateTime.now())) return;
+    if (!user.hasPunchesLeft) {
+      await _alertNoPunches(context);
+      return;
+    }
     database.addUserToWaitingList(this, user);
     await showOkAlertDialog(
         context: context,
@@ -549,6 +553,14 @@ class Practice {
         context: context,
         title: 'לא ניתן לבצע רישום כפול',
         message: 'הינך כבר רשום לשיעור אחד ביום זה.');
+  }
+
+  _alertNoPunches(BuildContext context) async {
+    await showOkAlertDialog(
+        context: context,
+        title: 'אין לך ניקובים',
+        message:
+            'לא ניתן להירשם לרשימת המתנה ללא ניקובים. לרכישה אנא צרו קשר ♡');
   }
 }
 
