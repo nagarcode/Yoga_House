@@ -173,6 +173,7 @@ class Practice {
       BuildContext screenContext,
       bool isManagerView) {
     final notifications = screenContext.read<NotificationService>();
+    final allPractices = screenContext.read<List<Practice>>();
     // final appInfo = screenContext.read<AppInfo>();
     return () async {
       try {
@@ -187,6 +188,12 @@ class Practice {
         if (isLocked) {
           await _showLockedDialog(screenContext);
           return;
+        }
+        if (!isManagerView) {
+          if (_isRegisteredToday(userInfo, allPractices)) {
+            await _alertRegisteredToday(screenContext);
+            return;
+          }
         }
         final didRequestRegister =
             await _promtRegistrationConfirmation(screenContext);
@@ -528,6 +535,20 @@ class Practice {
         context: screenContext,
         title: 'שיעור נעול',
         message: 'שיעור זה נעול ולא ניתן להירשם אליו.');
+  }
+
+  bool _isRegisteredToday(UserInfo userInfo, List<Practice> allPractices) {
+    for (var practice in allPractices) {
+      if (practice.isUserRegistered(userInfo.uid)) return true;
+    }
+    return false;
+  }
+
+  _alertRegisteredToday(BuildContext context) async {
+    await showOkAlertDialog(
+        context: context,
+        title: 'לא ניתן לבצע רישום כפול',
+        message: 'הינך כבר רשום לשיעור אחד ביום זה.');
   }
 }
 
