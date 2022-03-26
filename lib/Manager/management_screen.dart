@@ -8,6 +8,7 @@ import 'package:yoga_house/Manager/Management_Screens/homepage_message_screen.da
 import 'package:yoga_house/Manager/Management_Screens/notifications_settings.dart';
 import 'package:yoga_house/Manager/Management_Screens/practices_history_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/repeating_practices_screen.dart';
+import 'package:yoga_house/Manager/Management_Screens/statistics.dart';
 import 'package:yoga_house/Practice/practice_templates_screen.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
@@ -112,13 +113,15 @@ class _ManagementScreenState extends State<ManagementScreen> {
             await pushNewScreen(context, screen: ClientHome());
           },
         ),
-
-        // SettingsTile(
-        //   title: 'סטטיסטיקה חודשית',
-        //   titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
-        //   leading: Icon(Icons.data_saver_off_outlined, color: iconColor),
-        //   onPressed: (context) {}, //TODO next update!
-        // ),
+        SettingsTile(
+          title: Text('סטטיסטיקה',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
+          leading: Icon(Icons.data_saver_off_outlined, color: iconColor),
+          onPressed: (context) async {
+            // ignore: prefer_const_constructors
+            await StatisticsScreen.pushToTabBar(context);
+          },
+        ),
         SettingsTile(
           title: Text('התראות',
               style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),

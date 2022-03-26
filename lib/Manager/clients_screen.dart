@@ -58,6 +58,11 @@ class _ClientsScreenState extends State<ClientsScreen> {
             child: Column(
               children: [
                 _buildSearch(allUsers),
+                Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                        padding: const EdgeInsets.only(right: 20),
+                        child: _count(usersToDisplay))),
                 _buildList(allUsers),
               ],
             ),
@@ -217,5 +222,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
       this.query = query;
       usersToDisplay = newUsersToDisplay;
     });
+  }
+
+  _count(List<UserInfo>? usersToDisplay) {
+    return Text('תוצאות: ' +
+        (usersToDisplay != null ? usersToDisplay.length.toString() : '0'));
   }
 }

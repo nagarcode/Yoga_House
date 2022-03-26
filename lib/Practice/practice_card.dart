@@ -162,12 +162,14 @@ class _PracticeCardState extends State<PracticeCard> {
         dense: true,
         title: Text('- ' + user.name,
             style: theme.textTheme.subtitle1!.copyWith(fontSize: 13)),
-        trailing: TextButton(
-            onPressed: () {
-              widget.data.unregisterFromPracticeCallback(
-                  user, widget.database, context, appInfo, true)();
-            },
-            child: const Text('הסר')),
+        trailing: widget.isHistory
+            ? const Text('')
+            : TextButton(
+                onPressed: () {
+                  widget.data.unregisterFromPracticeCallback(
+                      user, widget.database, context, appInfo, true)();
+                },
+                child: const Text('הסר')),
       );
       rows.add(tile);
     }

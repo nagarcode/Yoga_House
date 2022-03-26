@@ -66,7 +66,6 @@ class _RegisterToPracticeScreenState extends State<RegisterToPracticeScreen> {
 
   Widget _itemBuilder(BuildContext listContext, Practice practice) {
     final appInfo = context.read<AppInfo>();
-
     final database = context.read<FirestoreDatabase>();
     return PracticeCard(
       isInWaitingList: practice.isInWaitingList(widget.userInfo),
