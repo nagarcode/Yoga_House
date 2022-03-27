@@ -113,6 +113,8 @@ class _ClientPersonalScreenState extends State<ClientPersonalScreen> {
               style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading: Icon(Icons.run_circle_outlined, color: iconColor),
           onPressed: (context) async {
+            // await PracticeHistoryMonthSelectorScreen.pushToTabBar(
+            //     context, widget.user, false);
             await PracticesHistoryScreen.pushToTabBar(
                 context, widget.user, false);
           },

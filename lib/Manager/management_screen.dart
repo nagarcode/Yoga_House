@@ -5,8 +5,11 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:yoga_house/Client/client_home.dart';
 import 'package:yoga_house/Client/register_to_practice_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/homepage_message_screen.dart';
+import 'package:yoga_house/Manager/Management_Screens/in_app_purchase_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/notifications_settings.dart';
 import 'package:yoga_house/Manager/Management_Screens/practices_history_screen.dart';
+import 'package:yoga_house/Manager/Management_Screens/repeating_practices_screen.dart';
+import 'package:yoga_house/Manager/Management_Screens/statistics.dart';
 import 'package:yoga_house/Practice/practice_templates_screen.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
@@ -62,6 +65,15 @@ class _ManagementScreenState extends State<ManagementScreen> {
           },
         ),
         SettingsTile(
+          title: Text('שיעורים קבועים',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
+          leading: Icon(Icons.loop_outlined, color: iconColor),
+          onPressed: (context) async {
+            // ignore: prefer_const_constructors
+            await RepeatingPracticesScreen.pushToTabBar(context, null);
+          },
+        ),
+        SettingsTile(
           title: Text('תבניות שיעור',
               style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading: Icon(Icons.run_circle_outlined, color: iconColor),
@@ -102,12 +114,15 @@ class _ManagementScreenState extends State<ManagementScreen> {
             await pushNewScreen(context, screen: ClientHome());
           },
         ),
-        // SettingsTile(
-        //   title: 'סטטיסטיקה חודשית',
-        //   titleTextStyle: theme.textTheme.bodyText1?.copyWith(fontSize: 15),
-        //   leading: Icon(Icons.data_saver_off_outlined, color: iconColor),
-        //   onPressed: (context) {}, //TODO next update!
-        // ),
+        SettingsTile(
+          title: Text('סטטיסטיקה',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
+          leading: Icon(Icons.data_saver_off_outlined, color: iconColor),
+          onPressed: (context) async {
+            // ignore: prefer_const_constructors
+            await StatisticsScreen.pushToTabBar(context);
+          },
+        ),
         SettingsTile(
           title: Text('התראות',
               style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
@@ -115,6 +130,14 @@ class _ManagementScreenState extends State<ManagementScreen> {
               Icon(Icons.notification_important_outlined, color: iconColor),
           onPressed: (context) async {
             await AdminNotificationsSettings.pushToTabBar(context);
+          },
+        ),
+        SettingsTile(
+          title: Text('תשלום',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
+          leading: Icon(Icons.attach_money_outlined, color: iconColor),
+          onPressed: (context) async {
+            await UpdatedMarketScreen.show(context);
           },
         ),
       ],

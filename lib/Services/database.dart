@@ -6,6 +6,7 @@ import 'package:yoga_house/Canellation/cancellation.dart';
 import 'package:yoga_house/Client/health_assurance.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Practice/practice_template.dart';
+import 'package:yoga_house/Practice/repeateng_practice.dart';
 import 'package:yoga_house/Services/shared_prefs.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
@@ -43,6 +44,38 @@ class FirestoreDatabase {
         .toList());
   }
 
+  Future<List<T>> _collectionFuture<T>(
+      {required String path,
+      required T Function(Map<String, dynamic> data) builder}) async {
+    debugPrint('FIREBASE QUERY: getting collection future: $path');
+    try {
+      final reference = _instance.collection(path);
+      final snapshot = await reference.get();
+      final allData = snapshot.docs.map((doc) => doc.data()).toList();
+      final built = allData.map((snap) => builder(snap));
+      return built.toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<Practice>> _pastPracticesInMonthYear(DateTime date) async {
+    final path = APIPath.pastPracticesByMonthCollection(date);
+    final practicesThisMonth = await _collectionFuture(
+        path: path, builder: (data) => Practice.fromMap(data));
+    return practicesThisMonth;
+  }
+
+  Future<Map<String, List<Practice>>> practicesHistoryByMonthsFuture() async {
+    final result = <String, List<Practice>>{};
+    final monthYears = _lastSixMonths();
+    for (var monthYear in monthYears) {
+      final practices = await _pastPracticesInMonthYear(monthYear);
+      result[Utils.numericMonthYear(monthYear)] = practices;
+    }
+    return result;
+  }
+
   Stream<T> _streamFromDoc<T>(
       String docPath, T Function(Map<String, dynamic> data) builder) {
     debugPrint('Stream from doc: getting stream: ' + docPath);
@@ -62,6 +95,12 @@ class FirestoreDatabase {
     final path = APIPath.futurePractices();
     return _collectionStream(
         path: path, builder: (data) => Practice.fromMap(data));
+  }
+
+  Stream<List<RepeatingPractice>> repeatingPracticesStream() {
+    final path = APIPath.repeatingPracticesCollection();
+    return _collectionStream(
+        path: path, builder: (data) => RepeatingPractice.fromMap(data));
   }
 
   Stream<List<Practice>> userFuturePracticesStream(String uid) {
@@ -364,10 +403,14 @@ class FirestoreDatabase {
     final postMovePracticesToRefs = _postMovePracticesToRefs(allPractices);
     return await _instance.runTransaction<bool>((transaction) async {
       for (var practice in postMovePracticesToRefs.keys) {
-        _transactionAddFieldToSingleDoc(
+        // _transactionAddFieldToSingleDoc(
+        //     reference: postMovePracticesToRefs[practice]!,
+        //     fieldId: practice.id,
+        //     field: practice.toMap(),
+        //     transaction: transaction);
+        _transactionAddDoc(
             reference: postMovePracticesToRefs[practice]!,
-            fieldId: practice.id,
-            field: practice.toMap(),
+            doc: practice.toMap(),
             transaction: transaction);
       }
       for (var ref in preMoveRefs) {
@@ -392,7 +435,8 @@ class FirestoreDatabase {
     final pastPractices = _pastPractices(allPractices);
     final map = <Practice, DocumentReference>{};
     for (var pastPractice in pastPractices) {
-      final path = APIPath.pastPracticeSingleDoc(pastPractice.startTime);
+      final path =
+          APIPath.pastPracticeDoc(pastPractice.startTime, pastPractice.id);
       final ref = _instance.doc(path);
       map[pastPractice] = ref;
     }
@@ -414,41 +458,80 @@ class FirestoreDatabase {
     await deleteDocument(path);
   }
 
-  Future<List<Practice>> practicesHistoryFuture() async {
-    final collectionPath = APIPath.pastPracticesCollection();
-    final monthsRef = _instance.collection(collectionPath);
-    final monthsData = await monthsRef.get();
-    final docsSnapshot = monthsData.docs;
-    final allPractices = <Practice>[];
-    for (var snapshot in docsSnapshot) {
-      final data = snapshot.data();
-      for (var practice in data.values) {
-        allPractices.add(Practice.fromMap(practice));
-      }
+  // Future<List<Practice>> practicesHistoryFuture() async {
+  //   final collectionPath = APIPath.pastPracticesCollection();
+  //   final monthsRef = _instance.collection(collectionPath);
+  //   final monthsData = await monthsRef.get();
+  //   final docsSnapshot = monthsData.docs;
+  //   final allPractices = <Practice>[];
+  //   for (var snapshot in docsSnapshot) {
+  //     final data = snapshot.data();
+  //     for (var practice in data.values) {
+  //       allPractices.add(Practice.fromMap(practice));
+  //     }
+  //   }
+  //   return allPractices;
+  // }
+  //
+  // Future<List<Practice>> practicesHistoryFuture() async {
+  //   final collectionPath = APIPath.pastPracticesCollection();
+  //   final monthsRef = _instance.collection(collectionPath);
+  //   final monthsData = await monthsRef.get();
+  //   final docsSnapshot = monthsData.docs;
+  //   final allPractices = <Practice>[];
+  //   for (var snapshot in docsSnapshot) {
+  //     final data = snapshot.data();
+  //     for (var practice in data.values) {
+  //       allPractices.add(Practice.fromMap(practice));
+  //     }
+  //   }
+  //   return allPractices;
+  // }
+  // Future<List<Practice>> practicesHistoryFuture() async {
+  //   final collectionPath = APIPath.pastPracticesCollection();
+  //   final monthsRef = _instance.collection(collectionPath);
+  //   final monthsData = await monthsRef.get();
+  //   final docsSnapshot = monthsData.docs;
+  //   final allPractices = <Practice>[];
+  //   for (var snapshot in docsSnapshot) {
+  //     final data = snapshot.data();
+  //     for (var practice in data.values) {
+  //       allPractices.add(Practice.fromMap(practice));
+  //     }
+  //   }
+  //   return allPractices;
+  // }
+
+  List<DateTime> _lastSixMonths() {
+    final result = <DateTime>[];
+    final now = DateTime.now();
+    for (int i = 0; i <= 6; i++) {
+      final toAdd = now.subtract(Duration(days: (30 * i)));
+      result.add(toAdd);
     }
-    return allPractices;
+    return result;
   }
 
-  Future<void> addFieldToSingleDoc({
-    required String docPath,
-    required String fieldId,
-    required Map<String, dynamic> field,
-  }) async {
-    debugPrint('Adding field $fieldId to doc $docPath');
-    final reference = _instance.doc(docPath);
-    final SetOptions setOptions = SetOptions(merge: true);
-    return await reference.set({fieldId: field}, setOptions);
-  }
+  // Future<void> addFieldToSingleDoc({
+  //   required String docPath,
+  //   required String fieldId,
+  //   required Map<String, dynamic> field,
+  // }) async {
+  //   debugPrint('Adding field $fieldId to doc $docPath');
+  //   final reference = _instance.doc(docPath);
+  //   final SetOptions setOptions = SetOptions(merge: true);
+  //   return await reference.set({fieldId: field}, setOptions);
+  // }
 
-  Future<void> _transactionAddFieldToSingleDoc(
-      {required DocumentReference reference,
-      required String fieldId,
-      required Map<String, dynamic> field,
-      required Transaction transaction}) async {
-    debugPrint('Adding field $fieldId to a singleDoc');
-    final SetOptions setOptions = SetOptions(merge: true);
-    transaction.set(reference, {fieldId: field}, setOptions);
-  }
+  // Future<void> _transactionAddFieldToSingleDoc(
+  //     {required DocumentReference reference,
+  //     required String fieldId,
+  //     required Map<String, dynamic> field,
+  //     required Transaction transaction}) async {
+  //   debugPrint('Adding field $fieldId to a singleDoc');
+  //   final SetOptions setOptions = SetOptions(merge: true);
+  //   transaction.set(reference, {fieldId: field}, setOptions);
+  // }
 
   Future<void> _transactionAddDoc({
     required DocumentReference reference,
@@ -669,5 +752,27 @@ class FirestoreDatabase {
     final practicePath = APIPath.futurePractice(practice.id);
     final practiceRef = _instance.doc(practicePath);
     return practiceRef.update({'isLocked': true});
+  }
+
+  Future<void> addRepeatingPractice(RepeatingPractice practice) async {
+    await setDocument(APIPath.repeatingPractice(practice.id), practice.toMap());
+  }
+
+  Future<void> deleteRepeatingPractice(RepeatingPractice template) async {
+    return await deleteDocument(APIPath.repeatingPractice(template.id));
+  }
+
+  Future<void> addUserToRepeatingPractice(
+      UserInfo? userToAdd, RepeatingPractice data) async {
+    if (userToAdd == null) return;
+    if (data.registeredParticipants.contains(userToAdd)) return;
+    data.registeredParticipants.add(userToAdd);
+    setDocument(APIPath.repeatingPractice(data.id), data.toMap());
+  }
+
+  removeUserFromRepeatingPractice(
+      UserInfo userToRemove, RepeatingPractice practice) {
+    practice.removeParticipant(userToRemove);
+    setDocument(APIPath.repeatingPractice(practice.id), practice.toMap());
   }
 }

@@ -6,6 +6,7 @@ import 'package:yoga_house/Client_Profile/client_profile_screen.dart';
 import 'package:yoga_house/Client_Profile/punch_card_history_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/cancellation_history_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/practices_history_screen.dart';
+import 'package:yoga_house/Manager/Management_Screens/repeating_practices_screen.dart';
 import 'package:yoga_house/Manager/new_punchcard_form.dart';
 import 'package:yoga_house/Manager/search_widget.dart';
 import 'package:yoga_house/Services/database.dart';
@@ -57,6 +58,11 @@ class _ClientsScreenState extends State<ClientsScreen> {
             child: Column(
               children: [
                 _buildSearch(allUsers),
+                Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                        padding: const EdgeInsets.only(right: 20),
+                        child: _count(usersToDisplay))),
                 _buildList(allUsers),
               ],
             ),
@@ -193,6 +199,15 @@ class _ClientsScreenState extends State<ClientsScreen> {
           await NewPunchcardForm.show(context, userInfo);
         },
       ),
+      CardSelectionTile(
+        innerContext,
+        'הוסף לשיעור קבוע',
+        Icon(Icons.loop_outlined, color: theme.colorScheme.primary),
+        (cardContext) async {
+          Navigator.of(cardContext).pop();
+          await RepeatingPracticesScreen.pushToTabBar(context, userInfo);
+        },
+      ),
     ];
   }
 
@@ -207,5 +222,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
       this.query = query;
       usersToDisplay = newUsersToDisplay;
     });
+  }
+
+  _count(List<UserInfo>? usersToDisplay) {
+    return Text('תוצאות: ' +
+        (usersToDisplay != null ? usersToDisplay.length.toString() : '0'));
   }
 }

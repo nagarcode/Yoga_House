@@ -10,6 +10,8 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Practice/practice_template.dart';
 import 'package:yoga_house/Practice/practice_template_card.dart';
+import 'package:yoga_house/Practice/repeateng_practice.dart';
+import 'package:yoga_house/Practice/repeating_practice_card.dart';
 import 'package:yoga_house/Services/app_info.dart';
 import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/Services/notifications.dart';
@@ -22,7 +24,8 @@ class ManagerCalendar extends StatefulWidget {
   final SharedPrefs prefs;
   final GlobalKey<ScaffoldState> parentScaffoldKey;
   final FirestoreDatabase database;
-  const ManagerCalendar(this.prefs,
+  final NotificationService notifications;
+  const ManagerCalendar(this.prefs, this.notifications,
       {Key? key, required this.parentScaffoldKey, required this.database})
       : super(key: key);
 
@@ -130,6 +133,12 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
         Icon(Icons.run_circle_outlined, color: theme.colorScheme.primary),
         (context) => _choseInsertNewWorkout(context),
       ),
+      CardSelectionTile(
+        context,
+        'הכנס שיעור עם רשומים קבועים',
+        Icon(Icons.loop_outlined, color: theme.colorScheme.primary),
+        (context) => _choseInsertRepeating(context),
+      ),
     ];
   }
 
@@ -138,7 +147,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
     final labelStyle = Theme.of(context).textTheme.subtitle2;
     Navigator.of(context).pop(ManagerAction.insertNewWorkout);
     _initTraineDetails(); // single trainer for now
-    _promtDetails(context, style!, labelStyle!);
+    _promtDetails(context, style!, labelStyle!, []);
   }
 
   _choseInsertWorkoutFromTemplate(BuildContext context) async {
@@ -149,6 +158,14 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
             _templateSelectionDialog(context, _templatesChoiceTiles(context)));
   }
 
+  _choseInsertRepeating(BuildContext context) async {
+    Navigator.of(context).pop(ManagerAction.insertRepeatingPractice);
+    await showDialog<RepeatingPractice>(
+        context: context,
+        builder: (context) => _repeatingPracticeSelectionDialog(
+            context, _repeatingPracticeChoiceTiles(context)));
+  }
+
   _templateSelectionDialog(
       BuildContext context, List<Widget> templatesChoiceTiles) {
     return Center(
@@ -157,6 +174,19 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
         child: ListView(
           shrinkWrap: true,
           children: templatesChoiceTiles,
+        ),
+      ),
+    );
+  }
+
+  _repeatingPracticeSelectionDialog(
+      BuildContext context, List<Widget> _repeatingPracticeChoiceTiles) {
+    return Center(
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: ListView(
+          shrinkWrap: true,
+          children: _repeatingPracticeChoiceTiles,
         ),
       ),
     );
@@ -176,16 +206,53 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
     return toReturn;
   }
 
+  List<Widget> _repeatingPracticeChoiceTiles(BuildContext ctxt) {
+    final practices = context.read<List<RepeatingPractice>>();
+    final toReturn = <RepeatingPracticeCard>[];
+    for (RepeatingPractice repeatingPractice in practices) {
+      toReturn.add(RepeatingPracticeCard(repeatingPractice, () => {},
+          selectionScreen: true,
+          ctxt: context,
+          onClicked: (RepeatingPractice pract) =>
+              _addWorkoutFromRepeatingPractice(ctxt, pract)));
+    }
+    return toReturn;
+  }
+
   _addWorkoutFromTemplate(BuildContext context, PracticeTemplate template) {
     final style = Theme.of(context).textTheme.headline6;
     final labelStyle = Theme.of(context).textTheme.subtitle2;
     Navigator.of(context).pop();
     _initPracticeDetails(template);
     _initTraineDetails(); // single trainer for now
-    _promtDetails(context, style!, labelStyle!);
+    _promtDetails(context, style!, labelStyle!, []);
+  }
+
+  _addWorkoutFromRepeatingPractice(
+      BuildContext context, RepeatingPractice practice) async {
+    final style = Theme.of(context).textTheme.headline6;
+    final labelStyle = Theme.of(context).textTheme.subtitle2;
+    Navigator.of(context).pop();
+    if (!await _promtAddRepeatingPractice(practice)) return;
+    if (!await _notifyIfNotEnoughPunches(practice.registeredParticipants)) {
+      return;
+    }
+    _initRepeatingPracticeDetails(practice);
+    _initTraineDetails();
+    _promtDetails(
+        context, style!, labelStyle!, practice.registeredParticipants);
   }
 
   void _initPracticeDetails(PracticeTemplate template) {
+    _name = template.name;
+    _description = template.description;
+    _lvl = template.level;
+    _location = template.location;
+    _maxParticipants = template.maxParticipants;
+    _durationMinutes = template.durationMinutes;
+  }
+
+  void _initRepeatingPracticeDetails(RepeatingPractice template) {
     _name = template.name;
     _description = template.description;
     _lvl = template.level;
@@ -200,8 +267,8 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
     _managerUID = userInfo.uid;
   }
 
-  void _promtDetails(
-      BuildContext context, TextStyle style, TextStyle labelStyle) async {
+  void _promtDetails(BuildContext context, TextStyle style,
+      TextStyle labelStyle, List<UserInfo> usersToRegister) async {
     await _promtDate(style, labelStyle);
     if (!_shouldPromtDuration) {
       _shouldPromtDetails = false;
@@ -225,7 +292,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
                 _maxParticipantsInput(ctx, labelStyle),
               ],
               confirmText: 'הוסף שיעור',
-              onConfirmed: () => _submitForm(ctx),
+              onConfirmed: () => _submitForm(ctx, usersToRegister),
               innerCtx: ctx,
               style: style,
               formKey: _formKey,
@@ -233,16 +300,21 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
         });
   }
 
-  Future<void> _submitForm(BuildContext ctx) async {
+  Future<void> _submitForm(
+      BuildContext ctx, List<UserInfo> usersToRegister) async {
     _setIsLoading(true);
     _formKey.currentState?.save();
     final didValidate = _formKey.currentState?.validate();
     if (didValidate != null && didValidate) {
       _shouldPromtDetails = false;
       _shouldPromtDuration = false;
-      await _createAndPersistPractice();
+      final practice = await _createAndPersistPractice();
+      if (usersToRegister.isNotEmpty) {
+        await _registerAllParticipants(usersToRegister, practice, ctx);
+      }
+      final context = widget.parentScaffoldKey.currentContext ?? ctx;
       await showOkAlertDialog(
-          context: widget.parentScaffoldKey.currentContext!,
+          context: context,
           message: 'השיעור נוסף בהצלחה',
           title: 'הצלחה',
           okLabel: 'אוקי');
@@ -507,6 +579,7 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
     );
     await widget.database.addPractice(practice);
     _resetFields();
+    return practice;
   }
 
   DateTime _getStartTime() {
@@ -561,6 +634,69 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
     _shouldPromtDuration = false;
     _shouldPromtDetails = false;
   }
+
+  Future<bool> _notifyIfNotEnoughPunches(
+      List<UserInfo> registeredParticipants) async {
+    final noPunchesLeft = _getUsersWithNoPunches(registeredParticipants);
+    return await _displayNoPunchesAlert(noPunchesLeft);
+  }
+
+  List<UserInfo> _getUsersWithNoPunches(List<UserInfo> registeredParticipants) {
+    return registeredParticipants.where((element) {
+      final punchcard = element.punchcard;
+      if (punchcard == null) {
+        return true;
+      }
+      if (punchcard.hasPunchesLeft) {
+        return false;
+      } else {
+        return true;
+      }
+    }).toList();
+  }
+
+  Future<bool> _displayNoPunchesAlert(List<UserInfo> noPunchesLeft) async {
+    if (noPunchesLeft.isEmpty) {
+      return true;
+    }
+    var usersText = '';
+    for (var user in noPunchesLeft) {
+      usersText += (user.name + ', ');
+    }
+    usersText = usersText.replaceRange(usersText.length - 2, null, '.');
+
+    final txt =
+        "לרשומים הבאים נגמרו הניקובים: $usersText \n האם ברצונך להמשיך ולרשום את כל השאר או לבטל את הוספת השיעור?";
+    return await showOkCancelAlertDialog(
+            context: context,
+            title: 'לא מספיק ניקובים',
+            message: txt,
+            okLabel: 'המשך') ==
+        OkCancelResult.ok;
+  }
+
+  _registerAllParticipants(List<UserInfo> usersToRegister, Practice practice,
+      BuildContext ctx) async {
+    for (var user in usersToRegister) {
+      await widget.database
+          .registerUserToPracticeTransaction(user, practice.id);
+      widget.notifications.sendManagerRegisteredYouNotification(user, practice);
+    }
+  }
+
+  Future<bool> _promtAddRepeatingPractice(RepeatingPractice practice) async {
+    if (practice.registeredParticipants.isEmpty) return true;
+    var usersText = '';
+    for (var user in practice.registeredParticipants) {
+      usersText += (user.name + ', ');
+    }
+    usersText = usersText.replaceRange(usersText.length - 2, null, '.');
+    final txt =
+        "הוספת שיעור קבוע זה תרשום אוטומטית את כל המתאמנים הבאים: $usersText \n האם להמשיך?";
+    return await showOkCancelAlertDialog(
+            context: context, title: 'רישום אוטומטי', message: txt) ==
+        OkCancelResult.ok;
+  }
 }
 
 class DataSource extends CalendarDataSource {
@@ -572,4 +708,5 @@ class DataSource extends CalendarDataSource {
 enum ManagerAction {
   insertWorkoutFromTemplate,
   insertNewWorkout,
+  insertRepeatingPractice,
 }

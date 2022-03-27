@@ -20,7 +20,6 @@ class _ManagerHomeState extends State<ManagerHome> {
   PersistentTabController? _controller;
   @override
   void initState() {
-    //TODO delete practices older than 1 year from history.
     _listenForNotifications();
     _organizePracticesCollection();
     _controller = PersistentTabController(initialIndex: 1);

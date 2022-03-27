@@ -5,6 +5,8 @@ const serviceGiverID = 'Yuval_Giat';
 class APIPath {
   static String userInfo(String uid) => 'users/$uid';
 
+  static String repeatingPracticesCollection() => 'Repeating_Practices';
+
   static String userInfoCollection() => 'users';
 
   static String userFuturePractices(String uid) =>
@@ -22,12 +24,21 @@ class APIPath {
 
   static String futurePractice(String id) => 'Practices/$id';
 
-  static String pastPracticesCollection() =>
-      'Practices_History/$serviceGiverID/History';
+  static String repeatingPractice(String id) =>
+      '${repeatingPracticesCollection()}/$id';
 
-  static String pastPracticeSingleDoc(DateTime date) {
-    final monthYear = Utils.numericMonthYear(date);
-    return 'Practices_History/$serviceGiverID/History/$monthYear';
+  static String pastPracticesByMonthCollection(DateTime date) {
+    String monthYear = Utils.numericMonthYear(date);
+    return 'Practices_History/$serviceGiverID/$monthYear';
+  }
+
+  // static String pastPracticeSingleDoc(DateTime date) {
+  //   final monthYear = Utils.numericMonthYear(date);
+  //   return 'Practices_History/$serviceGiverID/History/$monthYear';
+  // }
+  static String pastPracticeDoc(DateTime startTime, String id) {
+    final monthYear = Utils.numericMonthYear(startTime);
+    return 'Practices_History/$serviceGiverID/$monthYear/$id';
   }
 
   static String userPunchCardHistoryCollection(String uid) =>
@@ -44,6 +55,11 @@ class APIPath {
 
   static String userCancellationsCollection(String uid) =>
       'users/$uid/Cancellation_History';
+
+  static privacyPolicyURL() =>
+      'https://nagarcode.github.io/Skipo/Privacy-Policy.html';
+  static termsAndConditionsURL() =>
+      'https://nagarcode.github.io/Skipo/Terms-And-Conditions.html';
 
   //Assets:
 

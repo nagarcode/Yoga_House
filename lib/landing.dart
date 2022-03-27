@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:yoga_house/Client/client_home.dart';
 import 'package:yoga_house/Manager/manager_home.dart';
+import 'package:yoga_house/Practice/repeateng_practice.dart';
 import 'package:yoga_house/sign_in/sign_in_screen.dart';
 import 'package:yoga_house/sign_in/user_details_promt_screen.dart';
 import 'Practice/practice.dart';
@@ -103,15 +104,30 @@ class LandingPage extends StatelessWidget {
               if (futurePractices == null) {
                 return const SplashScreen();
               }
-              return MultiProvider(
-                  providers: [
-                    Provider<AppInfo>.value(value: appInfo),
-                    Provider<List<Practice>>.value(value: futurePractices),
-                  ],
-                  child: appInfo.isManagerTerminated
-                      ? const InfoScreen(PageType.managerTerminated)
-                      // ignore: prefer_const_constructors
-                      : ManagerHome());
+              return StreamBuilder<List<RepeatingPractice>>(
+                  stream: database.repeatingPracticesStream(),
+                  builder: (context, repeatingPracticesSnapshot) {
+                    if (Utils.connectionStateInvalid(
+                        repeatingPracticesSnapshot)) {
+                      return const SplashScreen();
+                    }
+                    final repeatingPractices = repeatingPracticesSnapshot.data;
+                    if (repeatingPractices == null) {
+                      return const SplashScreen();
+                    }
+                    return MultiProvider(
+                        providers: [
+                          Provider<AppInfo>.value(value: appInfo),
+                          Provider<List<Practice>>.value(
+                              value: futurePractices),
+                          Provider<List<RepeatingPractice>>.value(
+                              value: repeatingPractices),
+                        ],
+                        child: appInfo.isManagerTerminated
+                            ? const InfoScreen(PageType.managerTerminated)
+                            // ignore: prefer_const_constructors
+                            : ManagerHome());
+                  });
             },
           );
         });

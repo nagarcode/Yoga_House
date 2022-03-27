@@ -106,9 +106,10 @@ class _PracticeCardState extends State<PracticeCard> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // if (!widget.managerView)
-        Expanded(
-          child: _registerOrWaitingListButton(theme, isFull),
-        ),
+        if (!widget.isHistory)
+          Expanded(
+            child: _registerOrWaitingListButton(theme, isFull),
+          ),
         _registeredParticipants(registered, maxParticipants, theme, isFull),
       ],
     );
@@ -161,10 +162,14 @@ class _PracticeCardState extends State<PracticeCard> {
         dense: true,
         title: Text('- ' + user.name,
             style: theme.textTheme.subtitle1!.copyWith(fontSize: 13)),
-        onTap: () {
-          widget.data.unregisterFromPracticeCallback(
-              user, widget.database, context, appInfo, true)();
-        },
+        trailing: widget.isHistory
+            ? const Text('')
+            : TextButton(
+                onPressed: () {
+                  widget.data.unregisterFromPracticeCallback(
+                      user, widget.database, context, appInfo, true)();
+                },
+                child: const Text('הסר')),
       );
       rows.add(tile);
     }
@@ -208,6 +213,7 @@ class _PracticeCardState extends State<PracticeCard> {
       padding: const EdgeInsets.all(4.0),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
+          primary: Color.fromARGB(255, 193, 110, 207),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
