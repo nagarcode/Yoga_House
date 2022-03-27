@@ -56,6 +56,11 @@ class APIPath {
   static String userCancellationsCollection(String uid) =>
       'users/$uid/Cancellation_History';
 
+  static privacyPolicyURL() =>
+      'https://nagarcode.github.io/Skipo/Privacy-Policy.html';
+  static termsAndConditionsURL() =>
+      'https://nagarcode.github.io/Skipo/Terms-And-Conditions.html';
+
   //Assets:
 
   static String logo() => 'assets/images/logo.jpeg';

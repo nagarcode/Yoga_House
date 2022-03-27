@@ -5,6 +5,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:yoga_house/Client/client_home.dart';
 import 'package:yoga_house/Client/register_to_practice_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/homepage_message_screen.dart';
+import 'package:yoga_house/Manager/Management_Screens/in_app_purchase_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/notifications_settings.dart';
 import 'package:yoga_house/Manager/Management_Screens/practices_history_screen.dart';
 import 'package:yoga_house/Manager/Management_Screens/repeating_practices_screen.dart';
@@ -129,6 +130,14 @@ class _ManagementScreenState extends State<ManagementScreen> {
               Icon(Icons.notification_important_outlined, color: iconColor),
           onPressed: (context) async {
             await AdminNotificationsSettings.pushToTabBar(context);
+          },
+        ),
+        SettingsTile(
+          title: Text('תשלום',
+              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
+          leading: Icon(Icons.attach_money_outlined, color: iconColor),
+          onPressed: (context) async {
+            await UpdatedMarketScreen.show(context);
           },
         ),
       ],
