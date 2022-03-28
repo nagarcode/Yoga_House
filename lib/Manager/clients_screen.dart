@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:yoga_house/Client/health_assurance_screen.dart';
 import 'package:yoga_house/Client/register_to_practice_screen.dart';
 import 'package:yoga_house/Client_Profile/client_profile_screen.dart';
@@ -38,6 +39,11 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.read<UserInfo>();
+    if (user.isTest())
+      return Center(
+        child: Text('TBD'),
+      );
     return StreamBuilder<List<UserInfo>>(
       stream: allUsersInfoStream,
       builder: (context, allUsersInfoSnapshot) {

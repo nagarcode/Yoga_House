@@ -55,15 +55,16 @@ class _ManagementScreenState extends State<ManagementScreen> {
     return SettingsSection(
       title: Text('ניהול', style: theme.textTheme.bodyText1),
       tiles: [
-        SettingsTile(
-          title: Text('רשימת השיעורים',
-              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
-          leading: Icon(Icons.run_circle_outlined, color: iconColor),
-          onPressed: (context) async {
-            await RegisterToPracticeScreen.pushToTabBar(
-                context, true, userInfo);
-          },
-        ),
+        if (!userInfo.isTest())
+          SettingsTile(
+            title: Text('רשימת השיעורים',
+                style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
+            leading: Icon(Icons.run_circle_outlined, color: iconColor),
+            onPressed: (context) async {
+              await RegisterToPracticeScreen.pushToTabBar(
+                  context, true, userInfo);
+            },
+          ),
         SettingsTile(
           title: Text('שיעורים קבועים',
               style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
@@ -81,22 +82,24 @@ class _ManagementScreenState extends State<ManagementScreen> {
             await PracticeTemplatesScreen.pushToTabBar(context);
           },
         ),
-        SettingsTile(
-          title: Text('שלח הודעה ללקוחות',
-              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
-          leading: Icon(Icons.edit_notifications_outlined, color: iconColor),
-          onPressed: (context) async {
-            await HomepageTextScreen.pushToTabBar(context, false);
-          },
-        ),
-        SettingsTile(
-          title: Text('הודעה בדף הבית',
-              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
-          leading: Icon(Icons.message_outlined, color: iconColor),
-          onPressed: (context) async {
-            await HomepageTextScreen.pushToTabBar(context, true);
-          },
-        ),
+        if (!userInfo.isTest())
+          SettingsTile(
+            title: Text('שלח הודעה ללקוחות',
+                style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
+            leading: Icon(Icons.edit_notifications_outlined, color: iconColor),
+            onPressed: (context) async {
+              await HomepageTextScreen.pushToTabBar(context, false);
+            },
+          ),
+        if (!userInfo.isTest())
+          SettingsTile(
+            title: Text('הודעה בדף הבית',
+                style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
+            leading: Icon(Icons.message_outlined, color: iconColor),
+            onPressed: (context) async {
+              await HomepageTextScreen.pushToTabBar(context, true);
+            },
+          ),
         SettingsTile(
           title: Text('היסטוריית שיעורים',
               style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
@@ -105,15 +108,16 @@ class _ManagementScreenState extends State<ManagementScreen> {
             await PracticesHistoryScreen.pushToTabBar(context, null, true);
           },
         ),
-        SettingsTile(
-          title: Text('מבט לדף לקוחות',
-              style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
-          leading: Icon(Icons.person_outline, color: iconColor),
-          onPressed: (context) async {
-            // ignore: prefer_const_constructors
-            await pushNewScreen(context, screen: ClientHome());
-          },
-        ),
+        if (!userInfo.isTest())
+          SettingsTile(
+            title: Text('מבט לדף לקוחות',
+                style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
+            leading: Icon(Icons.person_outline, color: iconColor),
+            onPressed: (context) async {
+              // ignore: prefer_const_constructors
+              await pushNewScreen(context, screen: ClientHome());
+            },
+          ),
         SettingsTile(
           title: Text('סטטיסטיקה',
               style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),

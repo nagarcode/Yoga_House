@@ -8,6 +8,7 @@ import 'package:yoga_house/Manager/manager_main_screen.dart';
 import 'package:yoga_house/Practice/practice.dart';
 import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/Services/notifications.dart';
+import 'package:yoga_house/User_Info/user_info.dart';
 
 class ManagerHome extends StatefulWidget {
   const ManagerHome({Key? key}) : super(key: key);
@@ -32,17 +33,19 @@ class _ManagerHomeState extends State<ManagerHome> {
   }
 
   List<Widget> _buildScreens() {
+    final user = context.read<UserInfo>();
     final database = context.read<FirestoreDatabase>();
     return [
       ClientsScreen(database: database),
       // ignore: prefer_const_constructors
-      ManagerMainScreen(),
+      if (!user.isTest()) ManagerMainScreen(),
       // ignore: prefer_const_constructors
       ManagementScreen(),
     ];
   }
 
   List<PersistentBottomNavBarItem> _navBarItems() {
+    final user = context.read<UserInfo>();
     final colors = Theme.of(context).colorScheme;
     return [
       PersistentBottomNavBarItem(
@@ -51,12 +54,13 @@ class _ManagerHomeState extends State<ManagerHome> {
         activeColorPrimary: colors.primary,
         inactiveColorPrimary: CupertinoColors.systemGrey,
       ),
-      PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.home),
-        title: ("ראשי"),
-        activeColorPrimary: colors.primary,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
-      ),
+      if (!user.isTest())
+        PersistentBottomNavBarItem(
+          icon: const Icon(CupertinoIcons.home),
+          title: ("ראשי"),
+          activeColorPrimary: colors.primary,
+          inactiveColorPrimary: CupertinoColors.systemGrey,
+        ),
       PersistentBottomNavBarItem(
         icon: const Icon(CupertinoIcons.settings),
         title: ("ניהול"),

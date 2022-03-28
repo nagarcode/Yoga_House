@@ -14,7 +14,7 @@ import 'package:yoga_house/Services/database.dart';
 
 import '../../Services/splash_screen.dart';
 
-const subscriptionProductID = '10';
+const subscriptionProductID = '11';
 
 class UpdatedMarketScreen extends StatefulWidget {
   final FirestoreDatabase database;
@@ -73,10 +73,10 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
           leading: IconButton(
             iconSize: 30,
             onPressed: () => Navigator.of(context).pop(),
-            icon: Icon(CupertinoIcons.xmark),
+            icon: const Icon(CupertinoIcons.xmark),
             color: Colors.black,
           ),
-          title: Text(
+          title: const Text(
             'ברוכים הבאים לגרסא המלאה',
             style: TextStyle(color: Colors.black, fontSize: 14),
           ),
@@ -130,18 +130,18 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
             text: TextSpan(children: [
               TextSpan(
                   text: text,
-                  style: TextStyle(color: Colors.grey, fontSize: 10)),
+                  style: const TextStyle(color: Colors.grey, fontSize: 10)),
               TextSpan(
                   text: 'מדיניות הפרטיות ',
-                  style: TextStyle(color: Colors.blue, fontSize: 10),
+                  style: const TextStyle(color: Colors.blue, fontSize: 10),
                   recognizer: TapGestureRecognizer()
                     ..onTap = _launchPrivacyPolicyURL),
-              TextSpan(
+              const TextSpan(
                   text: 'או ל',
                   style: TextStyle(color: Colors.grey, fontSize: 10)),
               TextSpan(
                   text: 'תנאי השימוש',
-                  style: TextStyle(color: Colors.blue, fontSize: 10),
+                  style: const TextStyle(color: Colors.blue, fontSize: 10),
                   recognizer: TapGestureRecognizer()
                     ..onTap = _launchTermsOfUseURL),
             ])),
@@ -154,14 +154,14 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     List<IAPItem> items =
         await FlutterInappPurchase.instance.getProducts(_productLists);
     for (var item in items) {
-      this._products.add(item);
+      _products.add(item);
       if (item.productId == subscriptionProductID) {
-        this.sub = item;
+        sub = item;
       }
     }
 
     setState(() {
-      this._products = items;
+      _products = items;
     });
     showPendingUI(false);
   }
@@ -198,7 +198,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   Future<void> initPlatformState() async {
     // prepare
     var result = await FlutterInappPurchase.instance.initialize();
-    print('result: $result');
+    debugPrint('result: $result');
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
@@ -219,7 +219,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
 
     _conectionSubscription =
         FlutterInappPurchase.connectionUpdated.listen((connected) {
-      print('connected: $connected');
+      debugPrint('connected: $connected');
     });
 
     _purchaseUpdatedSubscription =
@@ -238,7 +238,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
 
     _purchaseErrorSubscription =
         FlutterInappPurchase.purchaseError.listen((purchaseError) {
-      print('purchase-error: $purchaseError');
+      debugPrint('purchase-error: $purchaseError');
       showTinyPendingUI(false);
       showPendingUI(false);
     });
@@ -279,7 +279,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
       }
     }
     setState(() {
-      this._purchases = clientPurchases;
+      _purchases = clientPurchases;
     });
     showTinyPendingUI(false);
   }
@@ -347,9 +347,9 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
                 border: Border.all(color: Colors.grey[300]!),
                 borderRadius: BorderRadius.circular(10),
               ),
-              padding: EdgeInsets.only(left: 5, top: 10, bottom: 10),
+              padding: const EdgeInsets.only(left: 5, top: 10, bottom: 10),
               child: smallWidgetIsLoading
-                  ? CircularProgressIndicator.adaptive()
+                  ? const CircularProgressIndicator.adaptive()
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
@@ -376,7 +376,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   }
 
   Widget _payText() {
-    return AutoSizeText(
+    return const AutoSizeText(
       'קדימה',
       style: TextStyle(
           letterSpacing: 0.5,
@@ -394,7 +394,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _payText(),
-          Icon(
+          const Icon(
             CupertinoIcons.forward,
             color: Colors.black,
           ),
@@ -424,9 +424,9 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
               border: Border.all(color: Colors.grey[300]!),
               borderRadius: BorderRadius.circular(10),
             ),
-            padding: EdgeInsets.only(left: 5, top: 10, bottom: 10),
+            padding: const EdgeInsets.only(left: 5, top: 10, bottom: 10),
             child: smallWidgetIsLoading
-                ? CircularProgressIndicator.adaptive()
+                ? const CircularProgressIndicator.adaptive()
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
@@ -456,7 +456,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   Widget _buildPlanPrice(String price) {
     return Text(
       price,
-      style: TextStyle(
+      style: const TextStyle(
           color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14),
       textAlign: TextAlign.center,
     );
@@ -466,7 +466,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   Widget _buildFeatureLabel(String label) {
     return Text(
       label,
-      style: TextStyle(
+      style: const TextStyle(
           letterSpacing: 0.2,
           color: Colors.grey,
           fontWeight: FontWeight.w500,
@@ -478,7 +478,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   Widget _buildPlanLabel(String label) {
     return Text(
       label,
-      style: TextStyle(
+      style: const TextStyle(
           letterSpacing: 0.1,
           color: Colors.black,
           fontWeight: FontWeight.w600,
@@ -492,7 +492,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     return Padding(
       padding:
           EdgeInsets.only(bottom: MediaQuery.of(context).size.width * 0.06),
-      child: Text(
+      child: const Text(
         'אפשרויות אחרות',
         style: TextStyle(
             letterSpacing: 0.5,
@@ -565,9 +565,9 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
       child: Padding(
         padding:
             EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.05),
-        child: Text(
+        child: const Text(
           'Yoga House',
-          style: TextStyle(fontSize: 35, fontFamily: 'amaticaRegular'),
+          style: const TextStyle(fontSize: 35, fontFamily: 'amaticaRegular'),
         ),
       ),
     );
@@ -582,7 +582,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text("Yuvish",
+            const Text("Yuvish",
                 style: TextStyle(
                     fontSize: 14,
                     color: Colors.black,
@@ -605,7 +605,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
             BoxShadow(
                 color: Colors.black54.withOpacity(0.1),
                 blurRadius: 10,
-                offset: Offset(0, 1))
+                offset: const Offset(0, 1))
           ]),
       child: Center(
           child: CircleAvatar(

@@ -228,7 +228,9 @@ class UserInfo {
     return phoneNumber == tomersPhone;
   }
 
-  
+  isTest() {
+    return phoneNumber == '+972501111111';
+  }
 
   // bool isRegisteredToPractice(String practiceID) {
   //   for (var practice in practicesRegistered) {
