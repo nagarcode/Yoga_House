@@ -6,41 +6,41 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
-import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:yoga_house/Services/api_path.dart';
 import 'package:yoga_house/Services/database.dart';
+import 'package:yoga_house/Services/splash_screen.dart';
 
-import '../../Services/splash_screen.dart';
-
-const subscriptionProductID = '11';
+const subscriptionProductID = '12';
 
 class UpdatedMarketScreen extends StatefulWidget {
   final FirestoreDatabase database;
 
   const UpdatedMarketScreen({required this.database});
   @override
-  _UpdatedMarketScreenState createState() => _UpdatedMarketScreenState();
+  _UpdatedMarketScreenState createState() => new _UpdatedMarketScreenState();
   static show(BuildContext context) async {
     final database = Provider.of<FirestoreDatabase>(context, listen: false);
-    await pushNewScreen(context,
-        screen: UpdatedMarketScreen(database: database));
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => UpdatedMarketScreen(database: database),
+            fullscreenDialog: true));
   }
 }
 
 class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
-  StreamSubscription? _purchaseUpdatedSubscription;
-  StreamSubscription? _purchaseErrorSubscription;
-  StreamSubscription? _conectionSubscription;
+  late StreamSubscription _purchaseUpdatedSubscription;
+  late StreamSubscription _purchaseErrorSubscription;
+  late StreamSubscription? _conectionSubscription;
   final List<String> _productLists =
       Platform.isAndroid ? [] : [subscriptionProductID];
   // final List<String> _subscriptionList = [subscriptionProductID, 'sub3'];
   List<IAPItem> _products = [];
   // List<IAPItem> _subscriptions = [];
-  List<PurchasedItem?> _purchases = [];
-  IAPItem? sub;
-  IAPItem? oneTimePayment;
+  List<PurchasedItem>? _purchases = [];
+  late IAPItem sub;
   bool isLoading = true;
   bool smallWidgetIsLoading = false;
 
@@ -49,6 +49,9 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     super.initState();
     initPlatformState().then((value) {
       _getProducts();
+      // _getSubscription();
+      // _getPurchaseHistory();
+      // _getPurchases();
     });
   }
 
@@ -64,8 +67,8 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading || sub == null || oneTimePayment == null) {
-      return const SplashScreen();
+    if (isLoading || sub == null) {
+      return SplashScreen();
     } else {
       return Scaffold(
         appBar: AppBar(
@@ -73,11 +76,11 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
           leading: IconButton(
             iconSize: 30,
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(CupertinoIcons.xmark),
+            icon: Icon(CupertinoIcons.xmark),
             color: Colors.black,
           ),
-          title: const Text(
-            'ברוכים הבאים לגרסא המלאה',
+          title: Text(
+            'ברוכים הבאים לעמוד התשלום',
             style: TextStyle(color: Colors.black, fontSize: 14),
           ),
           elevation: 0,
@@ -118,7 +121,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   }
 
   Widget _subscriptionSmallPrint() {
-    final price = sub?.price?.padRight(4, '0');
+    final price = sub.price?.padRight(4, '0');
     final text =
         'חיוב של $price שקלים באופן חודשי דרך חשבון האפל שלך החל מעכשיו ועד אשר תתקבל בקשה לביטול (ניתן לבטל בכל רגע, ללא התחייבות, דרך חשבון האפל שלך בהגדרות הטלפון). לעוד מידע ניתן לגשת ל';
 
@@ -130,18 +133,18 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
             text: TextSpan(children: [
               TextSpan(
                   text: text,
-                  style: const TextStyle(color: Colors.grey, fontSize: 10)),
+                  style: TextStyle(color: Colors.grey, fontSize: 10)),
               TextSpan(
                   text: 'מדיניות הפרטיות ',
-                  style: const TextStyle(color: Colors.blue, fontSize: 10),
+                  style: TextStyle(color: Colors.blue, fontSize: 10),
                   recognizer: TapGestureRecognizer()
                     ..onTap = _launchPrivacyPolicyURL),
-              const TextSpan(
+              TextSpan(
                   text: 'או ל',
                   style: TextStyle(color: Colors.grey, fontSize: 10)),
               TextSpan(
                   text: 'תנאי השימוש',
-                  style: const TextStyle(color: Colors.blue, fontSize: 10),
+                  style: TextStyle(color: Colors.blue, fontSize: 10),
                   recognizer: TapGestureRecognizer()
                     ..onTap = _launchTermsOfUseURL),
             ])),
@@ -154,14 +157,13 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     List<IAPItem> items =
         await FlutterInappPurchase.instance.getProducts(_productLists);
     for (var item in items) {
-      _products.add(item);
-      if (item.productId == subscriptionProductID) {
-        sub = item;
-      }
+      this._products.add(item);
+
+      if (item.productId == subscriptionProductID) this.sub = item;
     }
 
     setState(() {
-      _products = items;
+      this._products = items;
     });
     showPendingUI(false);
   }
@@ -183,22 +185,22 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   // }
 
   _endConnections() async {
-    await FlutterInappPurchase.instance.finalize();
+    await FlutterInappPurchase.instance.endConnection;
     if (_purchaseUpdatedSubscription != null) {
-      _purchaseUpdatedSubscription?.cancel();
-      _purchaseUpdatedSubscription = null;
+      _purchaseUpdatedSubscription.cancel();
+      // _purchaseUpdatedSubscription = null;
     }
     if (_purchaseErrorSubscription != null) {
-      _purchaseErrorSubscription?.cancel();
-      _purchaseErrorSubscription = null;
+      _purchaseErrorSubscription.cancel();
+      // _purchaseErrorSubscription = null;
     }
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     // prepare
-    var result = await FlutterInappPurchase.instance.initialize();
-    debugPrint('result: $result');
+    var result = await FlutterInappPurchase.instance.initConnection;
+    print('result: $result');
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
@@ -219,7 +221,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
 
     _conectionSubscription =
         FlutterInappPurchase.connectionUpdated.listen((connected) {
-      debugPrint('connected: $connected');
+      print('connected: $connected');
     });
 
     _purchaseUpdatedSubscription =
@@ -232,13 +234,17 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
         _showThankyouDialogue();
       }
       setState(() {
-        _purchases.add(purchasedItem);
+        if (purchasedItem != null) {
+          _purchases!.add(purchasedItem);
+        } else {
+          debugPrint('NULL item');
+        }
       });
     });
 
     _purchaseErrorSubscription =
         FlutterInappPurchase.purchaseError.listen((purchaseError) {
-      debugPrint('purchase-error: $purchaseError');
+      print('purchase-error: $purchaseError');
       showTinyPendingUI(false);
       showPendingUI(false);
     });
@@ -246,14 +252,15 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
 
   Future<void> _requestPurchase(IAPItem item) async {
     showTinyPendingUI(true);
-    await FlutterInappPurchase.instance.requestPurchase(item.productId ?? '');
+    await FlutterInappPurchase.instance
+        .requestPurchase(item.productId ?? 'null priduct');
     showTinyPendingUI(false);
   }
 
   List<String> _getOfferedItemsIDS() {
     List<String> ids = [];
     for (IAPItem product in _products) {
-      ids.add(product.productId ?? '');
+      ids.add(product.productId ?? 'null priduct');
     }
     return ids;
   }
@@ -270,16 +277,19 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     showTinyPendingUI(true);
     List<PurchasedItem>? clientPurchases =
         await FlutterInappPurchase.instance.getAvailablePurchases();
-    if (clientPurchases == null) return;
-    for (var item in clientPurchases) {
-      _purchases.add(item);
-      if (_shouldMakePaid(clientPurchases)) {
-        // widget.database.makePaid();
-        _showThankyouDialogue();
+    if (clientPurchases == null) {
+      debugPrint('null purchases!');
+    } else {
+      for (var item in clientPurchases) {
+        this._purchases!.add(item);
+        if (_shouldMakePaid(clientPurchases)) {
+          // widget.database.makePaid();
+          _showThankyouDialogue();
+        }
       }
     }
     setState(() {
-      _purchases = clientPurchases;
+      this._purchases = clientPurchases;
     });
     showTinyPendingUI(false);
   }
@@ -320,7 +330,6 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           SizedBox(width: MediaQuery.of(context).size.width * 0.03),
-          _resotorePrevPurchaseBox()
         ],
       ),
     );
@@ -338,7 +347,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
             // splashColor: Colors.redAccent[100],
             highlightColor: Colors.white,
             onTap: () {
-              _requestPurchase(sub!);
+              _requestPurchase(sub);
             },
             child: Container(
               height: MediaQuery.of(context).size.width * 0.3,
@@ -347,14 +356,14 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
                 border: Border.all(color: Colors.grey[300]!),
                 borderRadius: BorderRadius.circular(10),
               ),
-              padding: const EdgeInsets.only(left: 5, top: 10, bottom: 10),
+              padding: EdgeInsets.only(left: 5, top: 10, bottom: 10),
               child: smallWidgetIsLoading
-                  ? const CircularProgressIndicator.adaptive()
+                  ? CircularProgressIndicator.adaptive()
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
-                        _buildPlanLabel(sub?.title ?? ''),
-                        _buildPlanPrice(sub!.price!.padRight(4, '0') + '₪'),
+                        _buildPlanLabel(sub.title ?? 'null'),
+                        _buildPlanPrice(sub.price!.padRight(4, '0') + '₪'),
                         Padding(
                           padding: const EdgeInsets.only(top: 10.0),
                           child: _buildFeatureLabel(
@@ -376,7 +385,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   }
 
   Widget _payText() {
-    return const AutoSizeText(
+    return AutoSizeText(
       'קדימה',
       style: TextStyle(
           letterSpacing: 0.5,
@@ -394,7 +403,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _payText(),
-          const Icon(
+          Icon(
             CupertinoIcons.forward,
             color: Colors.black,
           ),
@@ -403,60 +412,15 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     );
   }
 
+  ///Standard plan box
+
   ///Premium plan box
-  Widget _resotorePrevPurchaseBox() {
-    return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.04),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          // splashColor: Colors.redAccent[100],
-          highlightColor: Colors.white,
-          onTap: () {
-            _getPurchases();
-          },
-          child: Container(
-            height: MediaQuery.of(context).size.width * 0.35,
-            width: MediaQuery.of(context).size.width * 0.35,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            padding: const EdgeInsets.only(left: 5, top: 10, bottom: 10),
-            child: smallWidgetIsLoading
-                ? const CircularProgressIndicator.adaptive()
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      _buildPlanLabel('שחזר קניה קיימת'),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20.0),
-                        child: _buildFeatureLabel(
-                            'קנית בעבר? לחץ כאן לשחזור הקניה בחינם'),
-                      ),
-                      _callToActionText(),
-                      // Padding(
-                      //   padding: const EdgeInsets.only(
-                      //     top: 5.0,
-                      //   ),
-                      //   child: _buildFeatureLabel(
-                      //       '-Simultaneous viewing\n up to 4 people'),
-                      // ),
-                    ],
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
 
   ///build price
   Widget _buildPlanPrice(String price) {
     return Text(
       price,
-      style: const TextStyle(
+      style: TextStyle(
           color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14),
       textAlign: TextAlign.center,
     );
@@ -466,7 +430,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   Widget _buildFeatureLabel(String label) {
     return Text(
       label,
-      style: const TextStyle(
+      style: TextStyle(
           letterSpacing: 0.2,
           color: Colors.grey,
           fontWeight: FontWeight.w500,
@@ -478,7 +442,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   Widget _buildPlanLabel(String label) {
     return Text(
       label,
-      style: const TextStyle(
+      style: TextStyle(
           letterSpacing: 0.1,
           color: Colors.black,
           fontWeight: FontWeight.w600,
@@ -492,8 +456,8 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     return Padding(
       padding:
           EdgeInsets.only(bottom: MediaQuery.of(context).size.width * 0.06),
-      child: const Text(
-        'אפשרויות אחרות',
+      child: Text(
+        'אפשרויות תשלום',
         style: TextStyle(
             letterSpacing: 0.5,
             color: Colors.grey,
@@ -565,9 +529,9 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
       child: Padding(
         padding:
             EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.05),
-        child: const Text(
+        child: Text(
           'Yoga House',
-          style: const TextStyle(fontSize: 35, fontFamily: 'amaticaRegular'),
+          style: TextStyle(fontSize: 35, fontFamily: 'amaticaRegular'),
         ),
       ),
     );
@@ -582,7 +546,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text("Yuvish",
+            Text("הסטודיו שהוא בית",
                 style: TextStyle(
                     fontSize: 14,
                     color: Colors.black,
@@ -605,7 +569,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
             BoxShadow(
                 color: Colors.black54.withOpacity(0.1),
                 blurRadius: 10,
-                offset: const Offset(0, 1))
+                offset: Offset(0, 1))
           ]),
       child: Center(
           child: CircleAvatar(
@@ -617,10 +581,10 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   }
 
   _showThankyouDialogue() async {
-    final result = await showOkCancelAlertDialog(
+    await showOkAlertDialog(
         context: context,
-        message: 'כעת תוכל להנות מכמות בלתי מוגבלת של מבחנים ושאלות. בהצלחה!',
-        title: 'ההגבלות הוסרו');
+        title: 'ההגבלות הוסרו',
+        message: 'כעת תוכל להנות מכמות בלתי מוגבלת של מבחנים ושאלות. בהצלחה!');
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 }
