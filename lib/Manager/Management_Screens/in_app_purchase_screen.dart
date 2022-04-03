@@ -51,8 +51,6 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     super.initState();
     initPlatformState().then((value) {
       _getProducts();
-      // _getSubscription();
-      // _getPurchaseHistory();
       _getPurchases();
     });
   }
@@ -170,22 +168,6 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     });
     showPendingUI(false);
   }
-
-  // Future _getSubscription() async {
-  //   showPendingUI(true);
-  //   IAPItem sub;
-  //   List<IAPItem> subs =
-  //       await FlutterInappPurchase.instance.getSubscriptions(_subscriptionList);
-  //   for (var item in subs) {
-  //     this._subscriptions.add(item);
-  //     if (item.productId == subscriptionProductID) sub = item;
-  //   }
-  //   setState(() {
-  //     this._subscriptions = subs;
-  //     this.sub = sub;
-  //   });
-  //   showPendingUI(false);
-  // }
 
   _endConnections() async {
     await FlutterInappPurchase.instance.finalize();
