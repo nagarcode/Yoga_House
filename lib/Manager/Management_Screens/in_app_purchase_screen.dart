@@ -11,15 +11,17 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:yoga_house/Services/api_path.dart';
 import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/Services/splash_screen.dart';
+import 'package:yoga_house/Services/utils_file.dart';
 
-const subscriptionProductID = '12';
+const subscriptionProductID = '13';
 
 class UpdatedMarketScreen extends StatefulWidget {
   final FirestoreDatabase database;
 
+  // ignore: use_key_in_widget_constructors
   const UpdatedMarketScreen({required this.database});
   @override
-  _UpdatedMarketScreenState createState() => new _UpdatedMarketScreenState();
+  _UpdatedMarketScreenState createState() => _UpdatedMarketScreenState();
   static show(BuildContext context) async {
     final database = Provider.of<FirestoreDatabase>(context, listen: false);
     await Navigator.push(
@@ -51,7 +53,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
       _getProducts();
       // _getSubscription();
       // _getPurchaseHistory();
-      // _getPurchases();
+      _getPurchases();
     });
   }
 
@@ -67,8 +69,9 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unnecessary_null_comparison
     if (isLoading || sub == null) {
-      return SplashScreen();
+      return const SplashScreen();
     } else {
       return Scaffold(
         appBar: AppBar(
@@ -76,10 +79,10 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
           leading: IconButton(
             iconSize: 30,
             onPressed: () => Navigator.of(context).pop(),
-            icon: Icon(CupertinoIcons.xmark),
+            icon: const Icon(CupertinoIcons.xmark),
             color: Colors.black,
           ),
-          title: Text(
+          title: const Text(
             'ברוכים הבאים לעמוד התשלום',
             style: TextStyle(color: Colors.black, fontSize: 14),
           ),
@@ -123,7 +126,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   Widget _subscriptionSmallPrint() {
     final price = sub.price?.padRight(4, '0');
     final text =
-        'חיוב של $price שקלים באופן חודשי דרך חשבון האפל שלך החל מעכשיו ועד אשר תתקבל בקשה לביטול (ניתן לבטל בכל רגע, ללא התחייבות, דרך חשבון האפל שלך בהגדרות הטלפון). לעוד מידע ניתן לגשת ל';
+        'חיוב של $price שקלים באופן חודשי דרך חשבון האפל שלך החל מעכשיו ועד אשר תתקבל בקשה לביטול (ניתן לבטל בכל רגע, ללא התחייבות, דרך חשבון האפל שלך בהגדרות הטלפון). תשלום זה מקנה לך תמיכה ושימוש באפלקיציה. ללא תשלום זה שירותים אלו יבוטלו. לעוד מידע ניתן לגשת ל';
 
     return Center(
       child: Padding(
@@ -133,18 +136,18 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
             text: TextSpan(children: [
               TextSpan(
                   text: text,
-                  style: TextStyle(color: Colors.grey, fontSize: 10)),
+                  style: const TextStyle(color: Colors.grey, fontSize: 10)),
               TextSpan(
                   text: 'מדיניות הפרטיות ',
-                  style: TextStyle(color: Colors.blue, fontSize: 10),
+                  style: const TextStyle(color: Colors.blue, fontSize: 10),
                   recognizer: TapGestureRecognizer()
                     ..onTap = _launchPrivacyPolicyURL),
-              TextSpan(
+              const TextSpan(
                   text: 'או ל',
                   style: TextStyle(color: Colors.grey, fontSize: 10)),
               TextSpan(
                   text: 'תנאי השימוש',
-                  style: TextStyle(color: Colors.blue, fontSize: 10),
+                  style: const TextStyle(color: Colors.blue, fontSize: 10),
                   recognizer: TapGestureRecognizer()
                     ..onTap = _launchTermsOfUseURL),
             ])),
@@ -157,13 +160,13 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     List<IAPItem> items =
         await FlutterInappPurchase.instance.getProducts(_productLists);
     for (var item in items) {
-      this._products.add(item);
+      _products.add(item);
 
-      if (item.productId == subscriptionProductID) this.sub = item;
+      if (item.productId == subscriptionProductID) sub = item;
     }
 
     setState(() {
-      this._products = items;
+      _products = items;
     });
     showPendingUI(false);
   }
@@ -185,11 +188,13 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   // }
 
   _endConnections() async {
-    await FlutterInappPurchase.instance.endConnection;
+    await FlutterInappPurchase.instance.finalize();
+    // ignore: unnecessary_null_comparison
     if (_purchaseUpdatedSubscription != null) {
       _purchaseUpdatedSubscription.cancel();
       // _purchaseUpdatedSubscription = null;
     }
+    // ignore: unnecessary_null_comparison
     if (_purchaseErrorSubscription != null) {
       _purchaseErrorSubscription.cancel();
       // _purchaseErrorSubscription = null;
@@ -199,8 +204,8 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     // prepare
-    var result = await FlutterInappPurchase.instance.initConnection;
-    print('result: $result');
+    var result = await FlutterInappPurchase.instance.initialize();
+    debugPrint('result: $result');
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
@@ -221,17 +226,16 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
 
     _conectionSubscription =
         FlutterInappPurchase.connectionUpdated.listen((connected) {
-      print('connected: $connected');
+      debugPrint('connected: $connected');
     });
 
     _purchaseUpdatedSubscription =
-        FlutterInappPurchase.purchaseUpdated.listen((purchasedItem) {
-      // final skippoUpgradeId =
-      //     _products.isNotEmpty ? _products.first.productId : null;
+        FlutterInappPurchase.purchaseUpdated.listen((purchasedItem) async {
+      final skippoUpgradeId =
+          _products.isNotEmpty ? _products.first.productId : null;
       final offeredItemsIDs = _getOfferedItemsIDS();
       if (offeredItemsIDs.contains(purchasedItem?.productId)) {
-        // widget.database.makePaid();
-        _showThankyouDialogue();
+        await _showThankyouDialogue(auto: true);
       }
       setState(() {
         if (purchasedItem != null) {
@@ -243,8 +247,10 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     });
 
     _purchaseErrorSubscription =
-        FlutterInappPurchase.purchaseError.listen((purchaseError) {
-      print('purchase-error: $purchaseError');
+        FlutterInappPurchase.purchaseError.listen((purchaseError) async {
+      await showOkAlertDialog(
+          context: context, title: 'שגיאה', message: purchaseError?.message);
+      debugPrint('purchase-error: $purchaseError');
       showTinyPendingUI(false);
       showPendingUI(false);
     });
@@ -281,15 +287,15 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
       debugPrint('null purchases!');
     } else {
       for (var item in clientPurchases) {
-        this._purchases!.add(item);
+        _purchases!.add(item);
         if (_shouldMakePaid(clientPurchases)) {
-          // widget.database.makePaid();
-          _showThankyouDialogue();
+          await _showThankyouDialogue(auto: true);
+          return;
         }
       }
     }
     setState(() {
-      this._purchases = clientPurchases;
+      _purchases = clientPurchases;
     });
     showTinyPendingUI(false);
   }
@@ -323,6 +329,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   }
 
   Widget _planRow() {
+    // ignore: sized_box_for_whitespace
     return Container(
       width: MediaQuery.of(context).size.width * 0.8,
       child: Row(
@@ -356,26 +363,30 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
                 border: Border.all(color: Colors.grey[300]!),
                 borderRadius: BorderRadius.circular(10),
               ),
-              padding: EdgeInsets.only(left: 5, top: 10, bottom: 10),
+              padding: const EdgeInsets.only(left: 5, top: 10, bottom: 10),
               child: smallWidgetIsLoading
-                  ? CircularProgressIndicator.adaptive()
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        _buildPlanLabel(sub.title ?? 'null'),
-                        _buildPlanPrice(sub.price!.padRight(4, '0') + '₪'),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: _buildFeatureLabel(
-                              'לחודש באופן זמני, ניתן לבטל בכל רגע'),
-                        ),
-                        _callToActionText(),
-                        // Padding(
-                        //   padding: const EdgeInsets.only(top: 5.0),
-                        //   child: _buildFeatureLabel(
-                        //       '-Simultaneous viewing\n up to 2 people'),
-                        // ),
-                      ],
+                  ? const CircularProgressIndicator.adaptive()
+                  : SingleChildScrollView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          _buildPlanLabel(sub.title ?? 'null'),
+                          _buildPlanPrice(
+                              sub.price!.padRight(4, '0') + sub.currency!),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10.0),
+                            child: _buildFeatureLabel(
+                                'לחודש באופן זמני, ניתן לבטל בכל רגע'),
+                          ),
+                          _callToActionText(),
+                          // Padding(
+                          //   padding: const EdgeInsets.only(top: 5.0),
+                          //   child: _buildFeatureLabel(
+                          //       '-Simultaneous viewing\n up to 2 people'),
+                          // ),
+                        ],
+                      ),
                     ),
             ),
           ),
@@ -385,7 +396,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   }
 
   Widget _payText() {
-    return AutoSizeText(
+    return const AutoSizeText(
       'קדימה',
       style: TextStyle(
           letterSpacing: 0.5,
@@ -403,7 +414,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _payText(),
-          Icon(
+          const Icon(
             CupertinoIcons.forward,
             color: Colors.black,
           ),
@@ -420,7 +431,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   Widget _buildPlanPrice(String price) {
     return Text(
       price,
-      style: TextStyle(
+      style: const TextStyle(
           color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14),
       textAlign: TextAlign.center,
     );
@@ -430,7 +441,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   Widget _buildFeatureLabel(String label) {
     return Text(
       label,
-      style: TextStyle(
+      style: const TextStyle(
           letterSpacing: 0.2,
           color: Colors.grey,
           fontWeight: FontWeight.w500,
@@ -442,7 +453,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
   Widget _buildPlanLabel(String label) {
     return Text(
       label,
-      style: TextStyle(
+      style: const TextStyle(
           letterSpacing: 0.1,
           color: Colors.black,
           fontWeight: FontWeight.w600,
@@ -456,7 +467,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     return Padding(
       padding:
           EdgeInsets.only(bottom: MediaQuery.of(context).size.width * 0.06),
-      child: Text(
+      child: const Text(
         'אפשרויות תשלום',
         style: TextStyle(
             letterSpacing: 0.5,
@@ -468,68 +479,12 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     );
   }
 
-  // Widget _buyWithArrow() {
-  //   return Padding(
-  //     padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.03),
-  //     child: Row(
-  //       crossAxisAlignment: CrossAxisAlignment.center,
-  //       mainAxisAlignment: MainAxisAlignment.center,
-  //       children: <Widget>[
-  //         Text(
-  //           'לתשלום',
-  //           style: TextStyle(
-  //               letterSpacing: 0.5,
-  //               color: Colors.black,
-  //               fontWeight: FontWeight.w800,
-  //               fontSize: 14),
-  //           textAlign: TextAlign.center,
-  //         ),
-  //         SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-  //         Icon(
-  //           CupertinoIcons.forward,
-  //           color: Colors.black,
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // Widget _infoBox() {
-  //   return Center(
-  //     child: Padding(
-  //       padding: EdgeInsets.symmetric(
-  //           horizontal: MediaQuery.of(context).size.width * 0.08),
-  //       child: Container(
-  //         width: MediaQuery.of(context).size.width,
-  //         margin:
-  //             EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.05),
-  //         padding: EdgeInsets.all(15),
-  //         decoration: BoxDecoration(
-  //           color: Colors.grey[100],
-  //           border: Border.all(color: Colors.grey[300]),
-  //           borderRadius: BorderRadius.circular(5),
-  //         ),
-  //         child: Text(
-  //           'תוכנית נוכחית: **מחיר** לחודש, ניתן לבטל בכל רגע',
-  //           style: TextStyle(
-  //               letterSpacing: 1,
-  //               color: Colors.black,
-  //               fontWeight: FontWeight.w400,
-  //               fontSize: 12),
-  //           textAlign: TextAlign.center,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  ///Netflix text
   Widget _skipo() {
     return Center(
       child: Padding(
         padding:
             EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.05),
-        child: Text(
+        child: const Text(
           'Yoga House',
           style: TextStyle(fontSize: 35, fontFamily: 'amaticaRegular'),
         ),
@@ -545,7 +500,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+          children: const <Widget>[
             Text("הסטודיו שהוא בית",
                 style: TextStyle(
                     fontSize: 14,
@@ -569,7 +524,7 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
             BoxShadow(
                 color: Colors.black54.withOpacity(0.1),
                 blurRadius: 10,
-                offset: Offset(0, 1))
+                offset: const Offset(0, 1))
           ]),
       child: Center(
           child: CircleAvatar(
@@ -580,11 +535,16 @@ class _UpdatedMarketScreenState extends State<UpdatedMarketScreen> {
     );
   }
 
-  _showThankyouDialogue() async {
+  _showThankyouDialogue({auto = false}) async {
+    const autoTitle = 'תשלום פעיל קיים';
+    const regularTitle = 'הצלחה';
+    const regularMessage = 'כעת תוכלי להמשיך בניהול הלקוחות כרגיל, בהצלחה';
+    const autoMessage = 'יש לך תשלום פעיל. תודה';
     await showOkAlertDialog(
         context: context,
-        title: 'ההגבלות הוסרו',
-        message: 'כעת תוכל להנות מכמות בלתי מוגבלת של מבחנים ושאלות. בהצלחה!');
+        title: auto ? autoTitle : regularTitle,
+        message:
+            (auto ? autoMessage : regularMessage) + ' ${Utils.heartEmoji()}');
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 }
