@@ -14,6 +14,8 @@ import 'package:yoga_house/Practice/practice_templates_screen.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
 
+import 'Management_Screens/IAP/in_app_purchase_screen_v2.dart';
+
 class ManagementScreen extends StatefulWidget {
   const ManagementScreen({Key? key}) : super(key: key);
 
@@ -141,7 +143,7 @@ class _ManagementScreenState extends State<ManagementScreen> {
               style: theme.textTheme.bodyText1?.copyWith(fontSize: 15)),
           leading: Icon(Icons.attach_money_outlined, color: iconColor),
           onPressed: (context) async {
-            await UpdatedMarketScreen.show(context);
+            await MarketScreen.show(context);
           },
         ),
       ],
