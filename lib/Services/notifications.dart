@@ -19,12 +19,12 @@ class NotificationService {
   NotificationService(this.database);
 
   static const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'yoga_house_channel', 'yoga_house_channel', 'yoga_house_channel',
+      'yoga_house_channel', 'yoga_house_channel',
       importance: Importance.high, playSound: true);
 
   static showNotification(RemoteMessage message) {
     const androidDetails = AndroidNotificationDetails(
-        'yoga_house_channel', 'yoga_house_channel', 'yoga_house_channel',
+        'yoga_house_channel', 'yoga_house_channel',
         icon: '@mipmap/launcher_icon',
         importance: Importance.max,
         priority: Priority.high);
@@ -140,7 +140,7 @@ class NotificationService {
       return;
     } //dont alert if appointment time is close
     const android = AndroidNotificationDetails(
-        'yoga_house_channel', 'yoga_house_channel', 'yoga_house_channel',
+        'yoga_house_channel', 'yoga_house_channel',
         icon: '@mipmap/launcher_icon',
         importance: Importance.max,
         priority: Priority.high);
