@@ -190,7 +190,7 @@ class Practice {
           return;
         }
         if (!isManagerView) {
-          if (_isRegisteredToday(userInfo, allPractices)) {
+          if (_isRegisteredToThatDay(userInfo, allPractices)) {
             await _alertRegisteredToday(screenContext);
             return;
           }
@@ -542,9 +542,13 @@ class Practice {
         message: 'שיעור זה נעול ולא ניתן להירשם אליו.');
   }
 
-  bool _isRegisteredToday(UserInfo userInfo, List<Practice> allPractices) {
+  bool _isRegisteredToThatDay(UserInfo userInfo, List<Practice> allPractices) {
     for (var practice in allPractices) {
-      if (practice.isUserRegistered(userInfo.uid)) return true;
+      if (Utils.isSameDate(startTime, practice.startTime)) {
+        if (practice.isUserRegistered(userInfo.uid)) {
+          return true;
+        }
+      }
     }
     return false;
   }
