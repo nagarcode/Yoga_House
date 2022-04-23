@@ -11,9 +11,9 @@ import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:yoga_house/Services/api_path.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 
-const subscriptionProductID = '14';
+const subscriptionProductID = '15';
 
-const String _kSilverSubscriptionId = '14';
+const String _kSilverSubscriptionId = '15';
 const List<String> _kProductIds = <String>[
   _kSilverSubscriptionId,
 ];
