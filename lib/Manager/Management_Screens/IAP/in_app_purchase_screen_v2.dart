@@ -1,5 +1,6 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'dart:async';
@@ -8,12 +9,13 @@ import 'dart:io';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:yoga_house/Services/api_path.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 
-const subscriptionProductID = '15';
+const subscriptionProductID = '16';
 
-const String _kSilverSubscriptionId = '15';
+const String _kSilverSubscriptionId = '16';
 const List<String> _kProductIds = <String>[
   _kSilverSubscriptionId,
 ];
@@ -163,6 +165,59 @@ class _MarketScreenState extends State<MarketScreen> {
     );
   }
 
+  void _launchURL(String url) async {
+    await canLaunch(url) ? await launch(url) : throw 'Could not launch $url';
+  }
+
+  _launchTermsOfUseURL() {
+    _launchURL(APIPath.termsAndConditionsURL());
+  }
+
+  _launchPrivacyPolicyURL() {
+    _launchURL(APIPath.privacyPolicyURL());
+  }
+
+  _launchEula() {
+    _launchURL(APIPath.eulaURL());
+  }
+
+  Widget _subscriptionSmallPrint() {
+    const text =
+        ' התשלום מתבצע באופן חודשי דרך חשבון האפל שלך החל מעכשיו ועד אשר תתקבל בקשה לביטול (ניתן לבטל בכל רגע, ללא התחייבות, דרך חשבון האפל שלך בהגדרות הטלפון). לעוד מידע ניתן לגשת ל';
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        child: RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(children: [
+              const TextSpan(
+                  text: text,
+                  style: TextStyle(color: Colors.grey, fontSize: 10)),
+              TextSpan(
+                  text: 'Privacy Policy ',
+                  style: const TextStyle(color: Colors.blue, fontSize: 10),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = _launchPrivacyPolicyURL),
+              const TextSpan(
+                  text: 'או ל',
+                  style: TextStyle(color: Colors.grey, fontSize: 10)),
+              TextSpan(
+                  text: 'Terms and Conditions. ',
+                  style: const TextStyle(color: Colors.blue, fontSize: 10),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = _launchTermsOfUseURL),
+              const TextSpan(
+                  text: 'הסכם של אפל למשתמשי קצה נמצא כאן: ',
+                  style: TextStyle(color: Colors.grey, fontSize: 10)),
+              TextSpan(
+                  text: 'EULA',
+                  style: const TextStyle(color: Colors.blue, fontSize: 10),
+                  recognizer: TapGestureRecognizer()..onTap = _launchEula),
+            ])),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final List<Widget> children = <Widget>[];
@@ -175,6 +230,7 @@ class _MarketScreenState extends State<MarketScreen> {
           _otherPlansLabel(),
           _buildProductList(),
           _buildRestoreButton(),
+          _subscriptionSmallPrint(),
         ],
       );
     } else {
@@ -331,27 +387,31 @@ class _MarketScreenState extends State<MarketScreen> {
                     // onPressed: () => confirmPriceChange(context),
                     onPressed: () {},
                     icon: Icon(Icons.check, color: theme.colorScheme.primary))
-                : TextButton(
-                    child: Text(productDetails.price),
-                    style: TextButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      primary: Colors.white,
-                    ),
-                    onPressed: () {
-                      try {
-                        if (_purchasePending) return;
-                        late PurchaseParam purchaseParam;
+                : Column(
+                    children: [
+                      TextButton(
+                        child: Text(productDetails.price),
+                        style: TextButton.styleFrom(
+                          backgroundColor: theme.colorScheme.primary,
+                          primary: Colors.white,
+                        ),
+                        onPressed: () {
+                          try {
+                            if (_purchasePending) return;
+                            late PurchaseParam purchaseParam;
 
-                        purchaseParam = PurchaseParam(
-                          productDetails: productDetails,
-                        );
+                            purchaseParam = PurchaseParam(
+                              productDetails: productDetails,
+                            );
 
-                        _inAppPurchase.buyNonConsumable(
-                            purchaseParam: purchaseParam);
-                      } catch (e) {
-                        debugPrint(e.toString());
-                      }
-                    },
+                            _inAppPurchase.buyNonConsumable(
+                                purchaseParam: purchaseParam);
+                          } catch (e) {
+                            debugPrint(e.toString());
+                          }
+                        },
+                      ),
+                    ],
                   ));
       },
     ));

@@ -57,9 +57,9 @@ class APIPath {
       'users/$uid/Cancellation_History';
 
   static privacyPolicyURL() =>
-      'https://nagarcode.github.io/Skipo/Privacy-Policy.html';
+      'https://nagarcode.github.io/Yoga_House_Privacy_Policy.html';
   static termsAndConditionsURL() =>
-      'https://nagarcode.github.io/Skipo/Terms-And-Conditions.html';
+      'https://nagarcode.github.io/Yoga_House_Terms_And_Condition.html';
 
   //Assets:
 
@@ -91,6 +91,9 @@ class APIPath {
   static String homepageTextTopic() => 'homepage_messages';
 
   static String userNotificationsTopic(String uid) => uid.toLowerCase();
+
+  static String eulaURL() =>
+      'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
   // static String adminTopicUserRegistered() => 'user_registered_to_practice';
 
