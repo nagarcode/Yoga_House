@@ -52,7 +52,15 @@ class _RepeatingPracticeCardState extends State<RepeatingPracticeCard> {
         'רמה: ${widget.data.level}\nמיקום: ${widget.data.location}\nמשך: ${widget.data.durationMinutes} דקות\nמספר משתתפים מקסימלי: ${widget.data.maxParticipants}\nתאור: ${widget.data.description}';
 
     return ListTile(
-      title: Text(widget.data.name),
+      title: Column(
+        children: [
+          Text(
+            widget.data.nickname,
+            style: const TextStyle(color: Color.fromARGB(255, 193, 110, 207)),
+          ),
+          Text(widget.data.name),
+        ],
+      ),
       onTap: expandCard,
       subtitle: Column(
         children: [

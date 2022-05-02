@@ -450,41 +450,52 @@ class _HealthAssuranceScreenState extends State<HealthAssuranceScreen> {
             ? null
             : () async {
                 _setIsLoading(true);
-                if (_formKey.currentState!.validate()) {
-                  final numOfBirths = this.numOfBirths;
-                  final age = this.age;
-                  if (numOfBirths == null || age == null) return;
-                  final healthAssurance = HealthAssurance(
-                      bloodPressure: bloodPressure,
-                      diabetes: diabetes,
-                      headachesDizzinessWeakness: headachesDizzinessWeakness,
-                      astma: astma,
-                      balance: balance,
-                      neck: neck,
-                      wrist: wrist,
-                      spine: spine,
-                      digestion: digestion,
-                      ears: ears,
-                      eyes: eyes,
-                      chronicStuff: chronicStuff,
-                      surgery: surgery,
-                      smoking: smoking,
-                      calcium: calcium,
-                      pregnant: pregnant,
-                      pregnantStuff: pregnantStuff,
-                      numOfBirths: numOfBirths,
-                      periodProblems: periodProblems,
-                      notes: notes,
-                      name: name,
-                      phone: phone,
-                      address: address,
-                      age: age,
-                      email: email,
-                      date: date);
-                  await widget.database
-                      .setHealthAssurance(widget.userInfo, healthAssurance);
-                } else {
+                try {
+                  final validated = _formKey.currentState!.validate();
+                  if (validated) {
+                    final numOfBirths = this.numOfBirths;
+                    final age = this.age;
+                    if (numOfBirths == null || age == null) {
+                      _setIsLoading(false);
+                      return;
+                    }
+                    final healthAssurance = HealthAssurance(
+                        bloodPressure: bloodPressure,
+                        diabetes: diabetes,
+                        headachesDizzinessWeakness: headachesDizzinessWeakness,
+                        astma: astma,
+                        balance: balance,
+                        neck: neck,
+                        wrist: wrist,
+                        spine: spine,
+                        digestion: digestion,
+                        ears: ears,
+                        eyes: eyes,
+                        chronicStuff: chronicStuff,
+                        surgery: surgery,
+                        smoking: smoking,
+                        calcium: calcium,
+                        pregnant: pregnant,
+                        pregnantStuff: pregnantStuff,
+                        numOfBirths: numOfBirths,
+                        periodProblems: periodProblems,
+                        notes: notes,
+                        name: name,
+                        phone: phone,
+                        address: address,
+                        age: age,
+                        email: email,
+                        date: date);
+                    await widget.database
+                        .setHealthAssurance(widget.userInfo, healthAssurance);
+                    
+                  } else {
+                    _setIsLoading(false);
+                  }
+                } catch (e) {
+                  debugPrint(e.toString());
                   _setIsLoading(false);
+                  return;
                 }
               },
         child: const Text('שלח'));

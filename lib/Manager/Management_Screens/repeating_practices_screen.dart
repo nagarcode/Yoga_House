@@ -12,7 +12,6 @@ import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
-
 class RepeatingPracticesScreen extends StatefulWidget {
   final FirestoreDatabase database;
   final UserInfo? userToAdd;
@@ -36,7 +35,7 @@ class RepeatingPracticesScreen extends StatefulWidget {
 
 class _RepeatingPracticesScreenState extends State<RepeatingPracticesScreen> {
   late GlobalKey<FormBuilderState> _formKey, _durationFormKey;
-  late String _name, _description, _selectedLvl, _location;
+  late String _nickname, _name, _description, _selectedLvl, _location;
   late int _maxParticipants, _durationMinutes;
   late List<RepeatingPractice>? _practices;
   late bool _isLoading;
@@ -57,12 +56,24 @@ class _RepeatingPracticesScreenState extends State<RepeatingPracticesScreen> {
         appBar: AppBar(
           title: Utils.appBarTitle(context, 'שיעורים קבועים'),
         ),
-        body: Column(
-          children: [
-            _practiceCards(practices),
-            if (practices.isEmpty) _noTemplatesText(),
-            _addTemplateIcon(),
-          ],
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'שימי לב! את הכותרת בסגול רק את רואה(בתור מנהלת). הכותרת בתכלת היא שם השיעור שגם הלקוחות יראו.',
+                    style: Theme.of(context).textTheme.bodyText1,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              _practiceCards(practices),
+              if (practices.isEmpty) _noTemplatesText(),
+              _addTemplateIcon(),
+            ],
+          ),
         ));
   }
 
@@ -73,6 +84,7 @@ class _RepeatingPracticesScreenState extends State<RepeatingPracticesScreen> {
           userToAdd: widget.userToAdd));
     }
     return ListView(
+      physics: const NeverScrollableScrollPhysics(),
       children: cards,
       shrinkWrap: true,
     );
@@ -97,7 +109,8 @@ class _RepeatingPracticesScreenState extends State<RepeatingPracticesScreen> {
         builder: (ctx) {
           return Utils.bottomSheetFormBuilder(
               inputFields: [
-                _practiceNameInput(ctx, labelStyle!),
+                _practiceNicknameInput(ctx, labelStyle!),
+                _practiceNameInput(ctx, labelStyle),
                 _descriptionInput(ctx, labelStyle),
                 _lvlInput(ctx, labelStyle),
                 _locationInput(ctx, labelStyle),
@@ -149,6 +162,24 @@ class _RepeatingPracticesScreenState extends State<RepeatingPracticesScreen> {
           InputDecoration(labelText: 'שם שיעור', labelStyle: labelStyle),
       onChanged: (newStr) {
         if (newStr != null) _name = newStr;
+      },
+      validator: FormBuilderValidators.compose([
+        FormBuilderValidators.required(ctx),
+        FormBuilderValidators.max(ctx, maxChars),
+      ]),
+    );
+  }
+
+  Widget _practiceNicknameInput(BuildContext ctx, TextStyle labelStyle) {
+    const maxChars = 20;
+    return FormBuilderTextField(
+      maxLength: maxChars,
+      name: 'nickname',
+      decoration: InputDecoration(
+          labelText: 'כינוי שיעור(לא נראה על ידי לקוחות)',
+          labelStyle: labelStyle),
+      onChanged: (newStr) {
+        if (newStr != null) _nickname = newStr;
       },
       validator: FormBuilderValidators.compose([
         FormBuilderValidators.required(ctx),
@@ -236,7 +267,8 @@ class _RepeatingPracticesScreenState extends State<RepeatingPracticesScreen> {
           location: _location,
           maxParticipants: _maxParticipants,
           durationMinutes: _durationMinutes,
-          registeredParticipants: []);
+          registeredParticipants: [],
+          nickname: _nickname);
 
       await widget.database.addRepeatingPractice(template);
       Navigator.of(ctx).pop();

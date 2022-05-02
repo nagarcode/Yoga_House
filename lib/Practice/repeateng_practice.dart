@@ -9,6 +9,7 @@ class RepeatingPractice {
   final int maxParticipants;
   final int durationMinutes;
   final List<UserInfo> registeredParticipants;
+  final String nickname;
 
   RepeatingPractice({
     required this.id,
@@ -19,17 +20,10 @@ class RepeatingPractice {
     required this.maxParticipants,
     required this.durationMinutes,
     required this.registeredParticipants,
+    this.nickname = 'כינוי ריק',
   });
 
   factory RepeatingPractice.fromMap(Map<String, dynamic> data) {
-    // print(data['id']);
-    // print(data['name']);
-    // print(data['description']);
-    // print(data['level']);
-    // print(data['location']);
-    // print(data['maxParticipants']);
-    // print(data['durationMinutes']);
-    // print(data['uids']);
     final registeredParticipants = _extractRegisteredUsers(data);
     final practice = RepeatingPractice(
       id: data['id'],
@@ -40,6 +34,7 @@ class RepeatingPractice {
       maxParticipants: data['maxParticipants'],
       durationMinutes: data['durationMinutes'],
       registeredParticipants: registeredParticipants,
+      nickname: data['nickname'] ?? 'כינוי ריק',
     );
     return practice;
   }
@@ -86,6 +81,7 @@ class RepeatingPractice {
       'maxParticipants': maxParticipants,
       'durationMinutes': durationMinutes,
       'registeredParticipants': registeredParticipants,
+      'nickname': nickname,
     };
   }
 
