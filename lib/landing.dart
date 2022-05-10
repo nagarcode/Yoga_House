@@ -94,25 +94,24 @@ class LandingPage extends StatelessWidget {
           if (appInfo == null) {
             return const SplashScreen();
           }
-          return StreamBuilder<List<Practice>>(
-            stream: database.futurePracticesStream(),
-            builder: (context, futurePracticesSnapshot) {
-              if (Utils.connectionStateInvalid(futurePracticesSnapshot)) {
+          return StreamBuilder<List<RepeatingPractice>>(
+            stream: database.repeatingPracticesStream(),
+            builder: (context, repeatingPracticesSnapshot) {
+              if (Utils.connectionStateInvalid(repeatingPracticesSnapshot)) {
                 return const SplashScreen();
               }
-              final futurePractices = futurePracticesSnapshot.data;
-              if (futurePractices == null) {
+              final repeatingPractices = repeatingPracticesSnapshot.data;
+              if (repeatingPractices == null) {
                 return const SplashScreen();
               }
-              return StreamBuilder<List<RepeatingPractice>>(
-                  stream: database.repeatingPracticesStream(),
-                  builder: (context, repeatingPracticesSnapshot) {
-                    if (Utils.connectionStateInvalid(
-                        repeatingPracticesSnapshot)) {
+              return StreamBuilder<List<Practice>>(
+                  stream: database.futurePracticesStream(),
+                  builder: (context, futurePracticesSnapshot) {
+                    if (Utils.connectionStateInvalid(futurePracticesSnapshot)) {
                       return const SplashScreen();
                     }
-                    final repeatingPractices = repeatingPracticesSnapshot.data;
-                    if (repeatingPractices == null) {
+                    final futurePractices = futurePracticesSnapshot.data;
+                    if (futurePractices == null) {
                       return const SplashScreen();
                     }
                     return MultiProvider(

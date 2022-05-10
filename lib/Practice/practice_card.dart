@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:yoga_house/Services/app_info.dart';
@@ -158,18 +159,25 @@ class _PracticeCardState extends State<PracticeCard> {
     final rows = <Widget>[descText, registeredText];
     if (users.isEmpty) return Text(desc + '\n' + 'טרם נרשמו מתאמנים לשיעור זה');
     for (var user in users) {
-      final tile = ListTile(
-        dense: true,
-        title: Text('- ' + user.name,
-            style: theme.textTheme.subtitle1!.copyWith(fontSize: 13)),
-        trailing: widget.isHistory
-            ? const Text('')
-            : TextButton(
-                onPressed: () {
-                  widget.data.unregisterFromPracticeCallback(
-                      user, widget.database, context, appInfo, true)();
-                },
-                child: const Text('הסר')),
+      final tile = Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            child: AutoSizeText(
+              user.name,
+              style: theme.textTheme.subtitle1!.copyWith(fontSize: 13),
+            ),
+          ),
+          if (!widget.isHistory)
+            Flexible(
+              child: TextButton(
+                  onPressed: () {
+                    widget.data.unregisterFromPracticeCallback(
+                        user, widget.database, context, appInfo, true)();
+                  },
+                  child: const Text('הסר')),
+            ),
+        ],
       );
       rows.add(tile);
     }
@@ -213,7 +221,7 @@ class _PracticeCardState extends State<PracticeCard> {
       padding: const EdgeInsets.all(4.0),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          primary: Color.fromARGB(255, 193, 110, 207),
+          primary: const Color.fromARGB(255, 193, 110, 207),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),

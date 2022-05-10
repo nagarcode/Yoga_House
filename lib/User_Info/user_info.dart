@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:yoga_house/Canellation/cancellation.dart';
 import 'package:yoga_house/Client/health_assurance.dart';
 import 'package:yoga_house/Practice/practice.dart';
-import 'package:yoga_house/Practice/repeateng_practice.dart';
 import 'package:yoga_house/Services/auth.dart';
 import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/common_widgets/punch_card.dart';

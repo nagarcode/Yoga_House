@@ -40,10 +40,11 @@ class _ClientsScreenState extends State<ClientsScreen> {
   @override
   Widget build(BuildContext context) {
     final user = context.read<UserInfo>();
-    if (user.isTest())
-      return Center(
+    if (user.isTest()) {
+      return const Center(
         child: Text('TBD'),
       );
+    }
     return StreamBuilder<List<UserInfo>>(
       stream: allUsersInfoStream,
       builder: (context, allUsersInfoSnapshot) {

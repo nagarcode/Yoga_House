@@ -80,15 +80,19 @@ class Utils {
       required BuildContext innerCtx,
       required TextStyle style,
       required Key formKey,
-      required String title}) {
+      required String title,
+      required double bottom}) {
     return CupertinoActionSheet(
       title: Text(title),
       actions: [
         Utils.bottomModalSheetCard(
           FormBuilder(
             key: formKey,
-            child: Column(
-              children: inputFields,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: bottom),
+              child: Column(
+                children: inputFields,
+              ),
             ),
           ),
         )

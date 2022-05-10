@@ -1,3 +1,4 @@
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
@@ -305,7 +306,7 @@ class _HealthAssuranceScreenState extends State<HealthAssuranceScreen> {
           name: 'births',
           initialValue: numOfBirths?.toString() ?? '',
           decoration: const InputDecoration(
-            labelText: 'כמה לידות עברת?',
+            labelText: 'כמה לידות עברת? אם 0 אנא למלא ״0״, גם גברים',
           ),
           onChanged: (newVal) {
             if (newVal == null) return;
@@ -459,6 +460,7 @@ class _HealthAssuranceScreenState extends State<HealthAssuranceScreen> {
                       _setIsLoading(false);
                       return;
                     }
+
                     final healthAssurance = HealthAssurance(
                         bloodPressure: bloodPressure,
                         diabetes: diabetes,
@@ -488,12 +490,13 @@ class _HealthAssuranceScreenState extends State<HealthAssuranceScreen> {
                         date: date);
                     await widget.database
                         .setHealthAssurance(widget.userInfo, healthAssurance);
-                    
                   } else {
+                    await _showInvalidFormAlert();
                     _setIsLoading(false);
                   }
                 } catch (e) {
                   debugPrint(e.toString());
+                  await _showInvalidFormAlert();
                   _setIsLoading(false);
                   return;
                 }
@@ -615,5 +618,12 @@ class _HealthAssuranceScreenState extends State<HealthAssuranceScreen> {
     address = '';
     age = null;
     email = widget.userInfo.email;
+  }
+
+  _showInvalidFormAlert() async {
+    await showOkAlertDialog(
+        context: context,
+        title: 'שגיאה',
+        message: 'אנא מלא את כל הפרטים הדרושים');
   }
 }

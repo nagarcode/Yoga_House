@@ -8,7 +8,6 @@ import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
-
 class EditPracticeForm extends StatefulWidget {
   final FirestoreDatabase database;
   final Practice practice;
@@ -65,7 +64,8 @@ class _EditPracticeFormState extends State<EditPracticeForm> {
         innerCtx: context,
         style: style!,
         formKey: _formKey,
-        title: 'פרטי שיעור');
+        title: 'פרטי שיעור',
+        bottom: MediaQuery.of(context).viewInsets.bottom);
   }
 
   List<Widget> _inputFields() {

@@ -5,7 +5,6 @@ import 'package:yoga_house/Services/database.dart';
 import 'package:yoga_house/Services/splash_screen.dart';
 import 'package:yoga_house/Services/utils_file.dart';
 import 'package:yoga_house/User_Info/user_info.dart';
-import 'package:yoga_house/common_widgets/punch_card.dart';
 
 class StatisticsScreen extends StatefulWidget {
   final FirestoreDatabase database;
@@ -50,7 +49,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           final data = allUsersInfoSnapshot.data;
           if (data == null) return const SplashScreen();
           allUsers = data;
-          final punchcards = _extractPunchcards(allUsers);
           _initPunchcardMap(allUsers);
           return Scaffold(
             appBar: AppBar(title: Utils.appBarTitle(context, 'סטטיסטיקה')),
@@ -76,7 +74,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       }
       tiles.add(_generateMonthTile(tilesThisMonth, month));
     }
-    return tiles;
+    return tiles.reversed;
   }
 
   _activePunchcards(List<UserInfo> punchcards) {
@@ -110,16 +108,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     monthsToUsers = map;
   }
 
-  List<Punchcard> _extractPunchcards(List<UserInfo> users) {
-    final punchcards = <Punchcard>[];
-    for (var user in users) {
-      if (user.hasPunchesLeft &&
-          user.punchcard!.expiresOn.isAfter(DateTime.now())) {
-        punchcards.add(user.punchcard!);
-      }
-    }
-    return punchcards;
-  }
+  // List<Punchcard> _extractPunchcards(List<UserInfo> users) {
+  //   final punchcards = <Punchcard>[];
+  //   for (var user in users) {
+  //     if (user.hasPunchesLeft &&
+  //         user.punchcard!.expiresOn.isAfter(DateTime.now())) {
+  //       punchcards.add(user.punchcard!);
+  //     }
+  //   }
+  //   return punchcards;
+  // }
 
   _generateUserTile(UserInfo user) {
     if (user.punchcard == null) {
@@ -152,7 +150,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ? Column(
               children: tilesThisMonth,
             )
-          : null,
+          : Text('כרטיסיות שנמכרו: ' + tilesThisMonth.length.toString()),
     );
   }
 }

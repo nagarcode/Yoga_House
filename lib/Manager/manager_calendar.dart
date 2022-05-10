@@ -21,7 +21,6 @@ import 'package:yoga_house/User_Info/user_info.dart';
 import 'package:yoga_house/common_widgets/card_selection_tile.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
-
 class ManagerCalendar extends StatefulWidget {
   final SharedPrefs prefs;
   final GlobalKey<ScaffoldState> parentScaffoldKey;
@@ -298,7 +297,8 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
               innerCtx: ctx,
               style: style,
               formKey: _formKey,
-              title: 'הכנס שיעור');
+              title: 'הכנס שיעור',
+              bottom: MediaQuery.of(ctx).viewInsets.bottom);
         });
   }
 
@@ -306,24 +306,28 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
       BuildContext ctx, List<UserInfo> usersToRegister) async {
     _setIsLoading(true);
     _formKey.currentState?.save();
-    final didValidate = _formKey.currentState?.validate();
-    if (didValidate != null && didValidate) {
-      _shouldPromtDetails = false;
-      _shouldPromtDuration = false;
-      final practice = await _createAndPersistPractice();
-      if (usersToRegister.isNotEmpty) {
-        await _registerAllParticipants(usersToRegister, practice, ctx);
+    try {
+      final didValidate = _formKey.currentState?.validate();
+      if (didValidate != null && didValidate) {
+        _shouldPromtDetails = false;
+        _shouldPromtDuration = false;
+        final practice = await _createAndPersistPractice();
+        if (usersToRegister.isNotEmpty) {
+          await _registerAllParticipants(usersToRegister, practice, ctx);
+        }
+        final context = widget.parentScaffoldKey.currentContext ?? ctx;
+        await showOkAlertDialog(
+            context: context,
+            message: 'השיעור נוסף בהצלחה',
+            title: 'הצלחה',
+            okLabel: 'אוקי');
+        Navigator.of(ctx).pop();
+      } else {
+        debugPrint("validation failed");
+        _setIsLoading(false);
       }
-      final context = widget.parentScaffoldKey.currentContext ?? ctx;
-      await showOkAlertDialog(
-          context: context,
-          message: 'השיעור נוסף בהצלחה',
-          title: 'הצלחה',
-          okLabel: 'אוקי');
-      Navigator.of(ctx).pop();
-    } else {
-      debugPrint("validation failed");
-      _setIsLoading(false);
+    } catch (e) {
+      debugPrint(e.toString());
     }
   }
 
@@ -437,7 +441,8 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
               innerCtx: ctx,
               style: style,
               formKey: _dateFormKey,
-              title: 'זמן התחלה');
+              title: 'זמן התחלה',
+              bottom: MediaQuery.of(ctx).viewInsets.bottom);
         });
   }
 
@@ -532,7 +537,8 @@ class _ManagerCalendarState extends State<ManagerCalendar> {
               innerCtx: ctx,
               style: style,
               formKey: _durationFormKey,
-              title: 'משך שיעור');
+              title: 'משך שיעור',
+              bottom: MediaQuery.of(ctx).viewInsets.bottom);
         });
   }
 

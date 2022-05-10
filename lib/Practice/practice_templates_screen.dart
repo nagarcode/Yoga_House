@@ -108,7 +108,8 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
               innerCtx: ctx,
               style: style!,
               formKey: _formKey,
-              title: 'שיעור קבוע חדש');
+              title: 'שיעור קבוע חדש',
+              bottom: MediaQuery.of(ctx).viewInsets.bottom);
         });
   }
 
@@ -127,7 +128,8 @@ class _PracticeTemplatesScreenState extends State<PracticeTemplatesScreen> {
               innerCtx: ctx,
               style: style!,
               formKey: _durationFormKey,
-              title: 'משך השיעור');
+              title: 'משך השיעור',
+              bottom: MediaQuery.of(ctx).viewInsets.bottom);
         });
   }
 

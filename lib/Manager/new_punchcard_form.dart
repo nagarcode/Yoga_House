@@ -10,7 +10,6 @@ import 'package:yoga_house/User_Info/user_info.dart';
 import 'package:yoga_house/common_widgets/punch_card.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
-
 class NewPunchcardForm extends StatefulWidget {
   final UserInfo userToAddTo;
   final FirestoreDatabase database;
@@ -62,7 +61,8 @@ class _NewPunchcardFormState extends State<NewPunchcardForm> {
         innerCtx: context,
         style: style!,
         formKey: _formKey,
-        title: 'כרטיסיה חדשה');
+        title: 'כרטיסיה חדשה',
+        bottom: MediaQuery.of(context).viewInsets.bottom);
   }
 
   List<Widget> _inputFields() {

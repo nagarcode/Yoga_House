@@ -37,7 +37,6 @@ class _RepeatingPracticesScreenState extends State<RepeatingPracticesScreen> {
   late GlobalKey<FormBuilderState> _formKey, _durationFormKey;
   late String _nickname, _name, _description, _selectedLvl, _location;
   late int _maxParticipants, _durationMinutes;
-  late List<RepeatingPractice>? _practices;
   late bool _isLoading;
 
   @override
@@ -121,7 +120,8 @@ class _RepeatingPracticesScreenState extends State<RepeatingPracticesScreen> {
               innerCtx: ctx,
               style: style!,
               formKey: _formKey,
-              title: 'שיעור קבוע חדש');
+              title: 'שיעור קבוע חדש',
+              bottom: MediaQuery.of(ctx).viewInsets.bottom);
         });
   }
 
@@ -140,7 +140,8 @@ class _RepeatingPracticesScreenState extends State<RepeatingPracticesScreen> {
               innerCtx: ctx,
               style: style!,
               formKey: _durationFormKey,
-              title: 'משך השיעור');
+              title: 'משך השיעור',
+              bottom: MediaQuery.of(ctx).viewInsets.bottom);
         });
   }
 

@@ -185,7 +185,7 @@ class Practice {
           await _showNoPunchesLeftDialog(screenContext);
           return;
         }
-        if (isLocked) {
+        if (isLocked && !isManagerView) {
           await _showLockedDialog(screenContext);
           return;
         }

@@ -81,8 +81,12 @@ class _RepeatingPracticeCardState extends State<RepeatingPracticeCard> {
         ],
       );
     } else {
-      return IconButton(
-        icon: const Icon(Icons.delete_forever_outlined),
+      return TextButton(
+        child: const Text('מחק'),
+        // icon: Icon(
+        //   Icons.delete_forever_outlined,
+        //   color: Theme.of(context).colorScheme.primary,
+        // ),
         onPressed: () => widget.deleteTemplateCallback(widget.data),
       );
     }
@@ -111,6 +115,7 @@ class _RepeatingPracticeCardState extends State<RepeatingPracticeCard> {
       return false;
     }
     final database = context.read<FirestoreDatabase>();
+    await _showAddedUser(widget.userToAdd);
     await database.addUserToRepeatingPractice(widget.userToAdd, widget.data);
     if (!expand) expandCard();
     return true;
@@ -153,8 +158,8 @@ class _RepeatingPracticeCardState extends State<RepeatingPracticeCard> {
 
   _removeUSerOnClick(UserInfo user, FirestoreDatabase database) async {
     if (await promtRemoveUser(user.name)) {
-      database.removeUserFromRepeatingPractice(user, widget.data);
       await showConfirmation('הצלחה', 'ההסרה התבצעה בהצלחה');
+      database.removeUserFromRepeatingPractice(user, widget.data);
     }
   }
 
@@ -225,6 +230,14 @@ class _RepeatingPracticeCardState extends State<RepeatingPracticeCard> {
 
   _punchesLeft(Punchcard? punchcard) {
     final remaining = punchcard != null ? punchcard.punchesRemaining : 0;
-    return Text('ניקובים שנותרו: ${remaining}');
+    return Text('ניקובים שנותרו: $remaining');
+  }
+
+  _showAddedUser(UserInfo? userToAdd) async {
+    if (userToAdd == null) return;
+    await showOkCancelAlertDialog(
+        context: context,
+        title: 'הצלחה',
+        message: userToAdd.name + ' נוסף בהצלחה לשיעור קבוע זה');
   }
 }
