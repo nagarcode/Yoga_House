@@ -511,6 +511,14 @@ class Practice {
     Navigator.of(context).pop();
   }
 
+  Future<void> lockWithoutPromt(FirestoreDatabase database) async {
+    await database.lockPractice(this);
+  }
+
+  Future<void> unlockWithoutPromt(FirestoreDatabase database) async {
+    await database.unlockPractice(this);
+  }
+
   unlock(BuildContext context, FirestoreDatabase database) async {
     final bool shouldUnlock = await _promtShouldUnlock(context);
     if (shouldUnlock) await database.unlockPractice(this);
